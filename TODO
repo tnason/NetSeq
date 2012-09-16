@@ -1,0 +1,16 @@
+Tom:
+-Install python/PodSixNet/pyo/kivy on Desktop
+
+-Look a bit further into PodSixNet source/model
+	-Write small PodSixNet networking example
+
+-Play with pyo a bit
+	-See about sending pyo data over the network
+
+-Get a sound generated on a client to play on another computer
+
+-Look at kivy API
+-Look at libavg API
+	-Decide what might be best to use
+
+-Discuss on Monday
