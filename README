@@ -1,0 +1,6 @@
+Here's where our project will go!
+
+We'll be writing a step sequencer using Python. 
+-Networking: PodSixNet
+-Synthesis: pyo
+-GUI: kivy / libavg
