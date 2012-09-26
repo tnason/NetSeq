@@ -28,6 +28,9 @@ class Client(ConnectionListener):
     def Network_packetConfirm(self, data):
         print "Packet confirmation received." + str(data['packet'])
 
+    def Network_chatSend(self, data):
+        print str(data['text']);
+
     #built in Network events
     def Network_connected(self, data):
     	print "You are now connected to the server"

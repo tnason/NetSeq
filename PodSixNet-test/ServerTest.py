@@ -17,7 +17,11 @@ class ClientChannel(Channel):
         # Network functions
 
         def Network_packet(self, data):
-            self._server.Broadcast({"action": "packetConfirm", "packet": 123})
+            self.Send({"action": "packetConfirm", "packet": 123})
+            for c in self._server.clients:
+                if c != self:
+                    c.Send({"action": "chatSend", "text": data['message']})
+            
 
 class ServerTest(Server):
         channelClass = ClientChannel
