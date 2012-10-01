@@ -1,0 +1,7 @@
+Dependencies:
+
+1. tkinter
+2. Kivy
+- includes PyGame
+3. PodSixNet
+4. Pyo
