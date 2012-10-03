@@ -1,0 +1,17 @@
+A session will likely contain the following:
+* Marks special handling of a data -- like don't send over network
+x marks something we do NOT need to track
+
+Pyo:
+- Global volume (float)
+- 2 Wave Tracks
+-- Oscillator
+-- Beat
+-- Volume (float)
+- 1 Drum Track
+*-- Samples
+-- Beat
+
+Networking:
+x PodSixNet Client
+x PodSixNet Server
