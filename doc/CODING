@@ -1,0 +1,11 @@
+Coding Conventions:
+
+When in doubt, follow http://www.python.org/dev/peps/pep-0008/
+
+Some important points to note
+-----------------------------
+
+1. Naming of Classes in MixedCase
+2. Name functions and variables with text_with_underscores
+3. CONTANTS_IN_CAPS_WITH_UNDESCORES
+4. Private data begins with _
