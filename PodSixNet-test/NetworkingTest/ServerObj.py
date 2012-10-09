@@ -17,6 +17,7 @@ class ClientChannel(Channel):
         # Network functions
 
         def Network_packet(self, data):
+            print 'packet received'
             self.Send({"action": "packetConfirm", "packet": 123})
             for c in self._server.clients:
                 if c != self:
@@ -45,6 +46,9 @@ class ServerObj(Server):
 
         def Broadcast(self, data):
             [c.Send(data) for c in self.clients]
+
+        def update(self):
+            self.Pump()
 
         def Run(self):
             while True:

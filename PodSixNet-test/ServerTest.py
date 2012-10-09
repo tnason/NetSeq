@@ -17,6 +17,7 @@ class ClientChannel(Channel):
         # Network functions
 
         def Network_packet(self, data):
+            print 'packet received'
             self.Send({"action": "packetConfirm", "packet": 123})
             for c in self._server.clients:
                 if c != self:

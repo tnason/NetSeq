@@ -19,9 +19,12 @@ class Client(ConnectionListener):
             connection.Pump()
             self.Pump()
 
-    def InputLoop(self):
-            while 1:
-                connection.Send({"action": "packet", "message": stdin.readline().rstrip("\n")})
+    def send_packet(self, data):
+            connection.Send({"action": "packet", "message": str(data)})
+
+#    def InputLoop(self):
+#            while 1:
+#                connection.Send({"action": "packet", "message": stdin.readline().rstrip("\n")})
 
     #Network events
     def Network_packetConfirm(self, data):

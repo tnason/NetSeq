@@ -5,16 +5,18 @@ import sys
 from sys import stdin
 from time import sleep
 
-print "Server?: "
-host = stdin.readline().rstrip("\n")
-print "Port?: "
-port = stdin.readline().rstrip("\n")
-s = ServerObj(host, int(port));
 
-sleep(10)
+sys.stdout.write("Server?: ")
+host = stdin.readline().rstrip("\n")
+sys.stdout.write("Port?: ")
+port = stdin.readline().rstrip("\n")
+s = ServerObj(localaddr=(host, int(port)));
+
+sleep(1)
 
 
 c = Client(host, int(port));
-c.connection.Send({"action": "packet", "message": "hello!"});
-c.connection.Pump()
-c.Pump()
+c.send_packet("hello!");
+c.Loop()
+
+s.update()
