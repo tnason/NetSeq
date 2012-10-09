@@ -11,14 +11,14 @@ from pyo import *
 # 1. add scales to this
 
 # Globals
-CHANNEL_COUNT = 4
+CHANNEL_COUNT = 2
 
 # Initialize server
 # TODO: look at format of '=' within arguments
 # TODO: choose different audio engine based on platform
 # TODO: document the channel playback troubles
 # IDEA: can we dump multiple samples into one channel, additatively?
-s = Server(sr=44100, nchnls=CHANNEL_COUNT, duplex=0, audio="jack").boot()
+s = Server(sr=44100, nchnls=CHANNEL_COUNT, duplex=0, audio="portaudio").boot()
 
 # Define pre-recorded samples
 NUM_DRUM_SAMPLES = 4
@@ -76,6 +76,9 @@ inst2_out = Osc(table=inst2_table, freq=240, mul=inst2_env)
 # expected
 drum_table = SndTable(drum_samples)
 drum_out = TrigEnv(drum_beat, table=drum_table, dur=drum_beat["dur"], interp=1, mul=1)
-drum_out.out()
+drum_mix = Mixer(outs=1, chnls=1)
+drum_mix.addInput(0, drum_out)
+drum_mix.out()
+drum_mix.setAmp(0, 0, .5)
 
 s.gui(locals())
