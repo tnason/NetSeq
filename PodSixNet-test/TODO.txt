@@ -1,0 +1,3 @@
+-Write network code that spawns a Client/Server pair
+-Make networking code triggered by Kivy button press
+	-Send data corresponding to pyo events
