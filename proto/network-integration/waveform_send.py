@@ -22,6 +22,8 @@ def run_client(instance):
     host = stdin.readline().rstrip("\n")
     sys.stdout.write("Port?: ")
     port = stdin.readline().rstrip("\n")
+    #spawn client thread
+    ButtonApp().switch()
 
 def run_server(instance):
     print "Starting a server..."
@@ -29,6 +31,13 @@ def run_server(instance):
     host = stdin.readline().rstrip("\n")
     sys.stdout.write("Port?: ")
     port = stdin.readline().rstrip("\n")
+    #spawn server thread
+    #spawn client thread
+    ButtonApp().switch()
+
+def send_sound(instance):
+    #stuff
+    print ""    
 
 class ButtonApp(App):
     def build(self):
@@ -41,5 +50,13 @@ class ButtonApp(App):
         layout.add_widget(button2)
         return layout
 
+    def switch(self):
+        layout = BoxLayout(orientation='vertical')
+        button1 = Button(text='Send sound', font_size=14)
+        button1.bind(on_press=send_sound)
+        layout.add_widget(button1)
+
 if __name__ == "__main__":
     ButtonApp().run()
+    #TODO: figure out how to change buttons on window, or close window and spawn a new one
+    
