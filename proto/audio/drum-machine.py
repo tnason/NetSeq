@@ -12,7 +12,8 @@ side_file = "../../assets/sounds/osdrumkit/sidestick24.ogg"
 snare_file = "../../assets/sounds/osdrumkit/snaretop_37.ogg" 
 
 # Drum beat
-hihat_preset = [[8, 1, 1, 1, 1, 1, 1, 1, 1]]
+hihat_presets = [[8, 1, 1, 1, 1, 1, 1, 1, 1],
+                 [8, 0, 0, 0, 0, 1, 0, 0, 0]]
 kick_preset = [[8, 1, 0, 0, 0, 1, 0, 0, 0]]
 side_preset = [[8, 0, 0, 1, 0, 0, 0, 0, 0]]
 snare_preset = [[8, 1, 0, 0, 0, 0, 0, 1, 0]]
@@ -22,7 +23,7 @@ server = Server().boot()
 server.start()
 
 hihat_beat = Beat(time=BEAT_TIME)
-hihat_beat.setPresets(hihat_preset)
+hihat_beat.setPresets(hihat_presets)
 hihat_beat.recall(0)
 hihat_beat.play()
 hihat_table = SndTable(hihat_file)
@@ -64,4 +65,10 @@ mixer.setAmp(3,0,.5)
 mixer.setAmp(3,1,.5)
 mixer.out()
 
-server.gui(locals)
+sleep(5.3)
+print "Recalling next"
+hihat_beat.recall(1)
+
+# server.gui(locals)
+
+sleep(100)
