@@ -1,3 +1,5 @@
+import pyo
+from pyo import *
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
@@ -9,11 +11,17 @@ from kivy.uix.label import Label
 from kivy.uix.tabbedpanel import TabbedPanelHeader
 from kivy.uix.stacklayout import StackLayout
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.togglebutton import ToggleButton
 
 class MyWidget(Widget):
+
     def __init__(self):
         super(MyWidget, self).__init__()
         
+        self.cos_table = CosTable([(0,0), (100,1), (1000,.25), (8191,0)])
+        self.osc_out = Osc(table=self.cos_table, freq=440)
+
         # For each element of the GUI, make sure to
         # 1. Create a unique reference attached to this object for
         #   future manipulation. e.g. self.main_box = main_box after you've
@@ -62,30 +70,49 @@ class MyWidget(Widget):
         main_layout.add_widget(music_layout)
 
         # NOTES GRID
-        notes = Button(text="Notes here", size=[640, 480], 
-                       pos=[161, 121], size_hint=[None, None])
-        music_layout.add_widget(notes)
+        # Right now Kivy isn't really paying attention to button size and
+        # padding. Later on, we'll fix this with a FloatLayout
+        note_rows = note_cols = 8
+        padding_between = 5
+        note_grid = GridLayout(size=[640, 480], pos=[161, 121], 
+                               size_hint=[None, None], rows=note_rows, 
+                               cols=note_cols, padding=padding_between)
+        music_layout.add_widget(note_grid)
 
-        prenote_padding = 30
-        posnote_padding = 30
+        edge_padding = 30
+
+        grid_start_x = note_grid.x + edge_padding
+        grid_end_x = note_grid.right - edge_padding
+        grid_start_y = note_grid.y + edge_padding
+        grid_end_y = note_grid.top - edge_padding
         notes_matrix = []
-        
-        x = notes.x
-        y = notes.y
-        width = notes.width
-        height = notes.height
-        print 'x: ', x
-        print 'y: ', y
-        print 'w: ', width
-        print 'h: ', height
-        print 'pos: ', music_layout.pos
 
+        note_width = grid_end_x - grid_start_x - padding_between * \
+                    (note_rows - 1)
+        note_height = grid_end_y - grid_start_y - padding_between * \
+                      (note_rows - 1)
+
+        for row in range(0, note_rows):
+            for col in range(0, note_cols):
+                new_id = str(row) + "," + str(col)
+                new_button = ToggleButton(text=new_id, id=new_id, 
+                                          width=note_width, 
+                                          height=note_height)
+                new_button.bind(on_press=self.play_note)
+                note_grid.add_widget(new_button)
+        
         # PLAYBACK BUTTONS
         playback = Button(text="For playback", size=[640, 120], 
                           size_hint=[None, None], pos=[161, 0])
         music_layout.add_widget(playback)
 
-        
+    def play_note(self, instance):
+        if instance.state == "down":
+            print "Playing!"
+            self.osc_out.out()
+        else:
+            print "Stopping!"
+            self.osc_out.stop()
 
 class NetSeqApp(App):
     def build(self):
@@ -95,4 +122,6 @@ class NetSeqApp(App):
         return my_widget
 
 if __name__ == "__main__":
+    s = Server().boot()
+    s.start()
     NetSeqApp().run()
