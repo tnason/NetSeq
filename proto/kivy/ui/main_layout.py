@@ -13,6 +13,7 @@ from kivy.uix.stacklayout import StackLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.togglebutton import ToggleButton
+from kivy.uix.textinput import TextInput
 
 class MyWidget(Widget):
 
@@ -53,8 +54,16 @@ class MyWidget(Widget):
         # Network tab
         network_tab = TabbedPanelHeader(text="Net")
         tabs.add_widget(network_tab)
-        network_button = Button(text="Network things")
-        network_tab.content = network_button
+        network_layout = BoxLayout(orientation="vertical", padding=10)
+        server_button = Button(text="Start server")
+        ip_label = Label(text="Your IP is\n123.234.456.789");
+        client_label = Label(text="Connect to server: ");
+        server_ip_input = TextInput(text="Enter server IP")
+        network_layout.add_widget(server_button)
+        network_layout.add_widget(ip_label)
+        network_layout.add_widget(client_label)
+        network_layout.add_widget(server_ip_input)
+        network_tab.content = network_layout
 
         # Global tab
         global_tab = TabbedPanelHeader(text="Global")
@@ -122,6 +131,8 @@ class NetSeqApp(App):
         return my_widget
 
 if __name__ == "__main__":
+    # VERY IMPORTANT that we initialize the server here instead of below
+    # Otherwise we get a segmentation fault with all kinds of errors
     s = Server().boot()
     s.start()
     NetSeqApp().run()
