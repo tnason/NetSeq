@@ -22,7 +22,11 @@ class ClientChannel(Channel):
             for c in self._server.clients:
                 if c != self:
                     c.Send({"action": "chatSend", "text": data['message']})
-            
+
+        def Network_send_frequency(self, data):
+            for c in self._server.clients:
+                if c != self:
+                    c.Send({"action": "play_frequency", "frequency": data['frequency']})
 
 class ServerObj(Server):
         channelClass = ClientChannel
@@ -50,7 +54,11 @@ class ServerObj(Server):
         def update(self):
             self.Pump()
 
+        def run_loop(self):
+            self.Run()
+
         def Run(self):
             while True:
                     self.Pump()
                     sleep(0.0001)
+        
