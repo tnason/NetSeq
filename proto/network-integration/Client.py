@@ -66,7 +66,8 @@ class Client(ConnectionListener):
 
     #Network events
     def Network_play_frequency(self, data):
-        self.play_frequency(int(data['frequency']))
+        print "===received network prompt to play sound==="
+	self.play_frequency(int(data['frequency']))
 
     def Network_packetConfirm(self, data):
         print "Packet confirmation received." + str(data['packet'])
