@@ -51,6 +51,9 @@ class ServerObj(Server):
         def Broadcast(self, data):
             [c.Send(data) for c in self.clients]
 
+        def Loop(self):
+            self.Pump()
+
         def update(self):
             self.Pump()
 

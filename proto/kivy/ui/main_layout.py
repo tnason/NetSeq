@@ -15,13 +15,16 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.textinput import TextInput
 
+from kivy.graphics.instructions import Canvas
+from kivy.graphics import Rectangle
+
 class MyWidget(Widget):
 
     def __init__(self):
         super(MyWidget, self).__init__()
         
         self.cos_table = CosTable([(0,0), (100,1), (1000,.25), (8191,0)])
-        self.osc_out = Osc(table=self.cos_table, freq=440)
+        self.osc_out = Osc(table=self.cos_table, freq=220)
 
         # For each element of the GUI, make sure to
         # 1. Create a unique reference attached to this object for
@@ -101,12 +104,24 @@ class MyWidget(Widget):
         note_height = grid_end_y - grid_start_y - padding_between * \
                       (note_rows - 1)
 
+        # Adding a rectangle to test playback indicator
+        self.playback_indicator = Rectangle(pos=[161,121], size=[75, 480])
+        self.playback_canvas = Canvas()
+        playback_widget = Widget()
+        self.playback_canvas.add(self.playback_indicator)
+        self.playback_canvas.opacity = .5    
+        playback_widget.canvas = self.playback_canvas
+        music_layout.add_widget(playback_widget)
+
+
         for row in range(0, note_rows):
             for col in range(0, note_cols):
                 new_id = str(row) + "," + str(col)
                 new_button = ToggleButton(text=new_id, id=new_id, 
                                           width=note_width, 
                                           height=note_height)
+                active_color = (1, 0, 0, 1)
+                new_button.background_color = active_color
                 new_button.bind(on_press=self.play_note)
                 note_grid.add_widget(new_button)
         
@@ -119,9 +134,11 @@ class MyWidget(Widget):
         if instance.state == "down":
             print "Playing!"
             self.osc_out.out()
+            self.playback_indicator.pos = [260, 121]
         else:
             print "Stopping!"
             self.osc_out.stop()
+            self.playback_canvas.opacity = 0
 
 class NetSeqApp(App):
     def build(self):

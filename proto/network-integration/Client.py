@@ -46,7 +46,7 @@ class Client(ConnectionListener):
             connection.Send({"action": "packet", "message": str(data)})
 
     def send_frequency(self):
-            self.play_frequency(frequency)
+            #self.play_frequency(frequency)
             connection.Send({"action": "send_frequency", "frequency": str(frequency)})
 
     def play_frequency(self, freq):
