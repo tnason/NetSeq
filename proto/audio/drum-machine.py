@@ -65,10 +65,17 @@ mixer.setAmp(3,0,.5)
 mixer.setAmp(3,1,.5)
 mixer.out()
 
-sleep(5.3)
-print "Recalling next"
-hihat_beat.recall(1)
+# Evidence that we can PAUSE and PLAY using these callbacks
+sleep(5)
+server.stop()
+sleep(2)
+server.start()
+sleep(5)
+
+# sleep(5.3)
+# print "Recalling next"
+# hihat_beat.recall(1)
 
 # server.gui(locals)
 
-sleep(100)
+# sleep(100)
