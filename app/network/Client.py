@@ -16,6 +16,7 @@ class Client(ConnectionListener):
             self.Pump()
 
     def send_note(self, data):
+        """function call to send note data to server"""
         connection.Send({"action": "send_note", "note_data": data})
 
     def send_volume(self, data):
@@ -35,26 +36,32 @@ class Client(ConnectionListener):
         """callback for network triggered note addition"""
         #tell the music player to add the note
         #tell the GUI to add the note
+        pass
+        
 
     def Network_set_volume(self, data):
         """callback for network triggered volume change"""
         #tell the music player to change volume
         #tell the GUI to change volume
+        pass
 
     def Network_set_tempo(self, data):
         """callback for network triggered tempo change"""
         #tell the music player to change tempo
         #tell the GUI to change tempo
+        pass
 
     def Network_set_reverb(self, data):
         """callback for network triggered reverb change"""
         #tell the music player to change reverb
         #tell the GUI to change reverb
+        pass
 
     def Network_set_session(self, data):
         """callback for network triggered session load"""
         #tell the music player to load a session
         #tell the GUI to reload the session
+        pass
 
     #built in Network events
     def Network_connected(self, data):
