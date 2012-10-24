@@ -8,6 +8,7 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.tabbedpanel import TabbedPanelHeader
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.slider import Slider
 
 class GUI(Widget):
     """Widget for all user interaction with sequencer"""
@@ -222,12 +223,13 @@ class GUI(Widget):
                                    valign='middle')
         global_music_label.center_x = tabs.center_x
         global_music_label.top = TAB_CONTENT_TOP - TAB_SECTION_PADDING
-        print "Music label top: ", str(global_music_label.top)
-        print "Music label y: ", str(global_music_label.y)
-        print "Tab content height: ", str(TAB_CONTENT_HEIGHT)
-        print "Music content height: ", str(music_tab_content.height)
-        print "Grid height: ", str(GRID_HEIGHT)
         music_tab_content.add_widget(global_music_label)
+        
+        global_volume_slider = Slider(min=MusicPlayer.MIN_TEMPO, 
+                                      max=MusicPlayer.MAX_TEMPO,
+                                      value=music_player.tempo,
+                                      orientation='horizontal')
+
 
         # Network tab
         network_tab = TabbedPanelHeader()
@@ -310,6 +312,7 @@ class NetSeqApp(App):
     
     def build(self):
         """Build GUI"""
+        music_player = MusicPlayer()
         gui_widget = GUI(None, None)
         return gui_widget
 
