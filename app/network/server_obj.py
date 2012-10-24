@@ -19,31 +19,31 @@ class ClientChannel(Channel):
             """rebroadcast a send note command from a client to all others"""
             for c in self._server.clients:
                 if c != self:
-                    c.Send({"action": "set_note", "note_data": data})
+                    c.Send({"action": "set_note", "note_data": data['note_data']})
 
         def Network_send_volume(self, data):
             """rebroadcast a send volume command from a client to all others"""
             for c in self._server.clients:
                 if c != self:
-                    c.Send({"action": "set_volume", "volume_data": data})
+                    c.Send({"action": "set_volume", "volume_data": data['volume_data'], "track_id": data['track_id']})
 
         def Network_send_tempo(self, data):
             """rebroadcast a send tempo command from a client to all others"""
             for c in self._server.clients:
                 if c != self:
-                    c.Send({"action": "set_tempo", "tempo_data": data})
+                    c.Send({"action": "set_tempo", "tempo_data": data['tempo_data']})
 
         def Network_send_reverb(self, data):
             """rebroadcast a send reverb command from a client to all others"""
             for c in self._server.clients:
                 if c != self:
-                    c.Send({"action": "set_reverb", "reverb_data": data})
+                    c.Send({"action": "set_reverb", "reverb_data": data['reverb_data'], "track_id": data['track_id']})
 
         def Network_send_session(self, data):
             """rebroadcast a send session command from a client to all others"""
             for c in self._server.clients:
                 if c != self:
-                    c.Send({"action": "set_session", "session_data": data})            
+                    c.Send({"action": "set_session", "session_data": data['session_data']})            
 
 class ServerObj(Server):
         channelClass = ClientChannel

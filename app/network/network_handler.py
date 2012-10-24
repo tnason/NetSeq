@@ -10,13 +10,16 @@
         And allow for remote termination from the network app
 """
 from client import Client
-from server_obj import Server_Obj
+from server_obj import ServerObj
+from network_thread import NetworkThread
+from time import sleep
+
+NOT_CONNECTED = 0
+NETWORK_CLIENT = 1
+NETWORK_SERVER = 2
 
 class NetworkHandler():
 
-    NOT_CONNECTED = 0
-    NETWORK_CLIENT = 1
-    NETWORK_SERVER = 2
 
     def __init__(self, music_player, gui):
         """constructor for the network handler"""
@@ -32,29 +35,71 @@ class NetworkHandler():
 
     def connect_to_server(self, server_ip, server_port):
         """server_ip sent as a string, server_port as an int"""
+        self.client = Client(server_ip, server_port)
+        #TODO: Check to make sure client was made successfully?
+        self.client_thread = NetworkThread("client", self.client)
+        self.client_thread.start()
         self.connected = NETWORK_CLIENT
-        self.client = Client(host, int(port))
-        #TODO: setup client, client_thread
-
+        
     def start_server(self, server_ip, server_port):
         """server_ip sent as a string, server_port as an int"""
-        self.connected = NETWORK_SERVER
-        #TODO: setup server, server_thread, then client, client_thread
+        self.server = ServerObj(localaddr=(server_ip, server_port))
+        #TODO: Check to make sure server was made successfully?
+        self.server_thread = NetworkThread("server", self.server)
+        self.server_thread.start()
 
+        self.client = Client(server_ip, server_port)
+        #TODO: Check to make sure client was made successfully?
+        self.client_thread = NetworkThread("client", self.client)
+        self.client_thread.start()
+        self.connected = NETWORK_SERVER
+        
     def terminate_connections(self):
-        if(self.connected == NOT_CONNECTED)
+        if self.connected == NOT_CONNECTED:
+            pass
             #TODO: error message?
-        elif(self.connected == NETWORK_CLIENT)
+        elif self.connected == NETWORK_CLIENT:
             client_thread.terminate()
             client_thread = None
-        elif(self.connected == NETWORK_SERVER)
+        elif self.connected == NETWORK_SERVER:
             server_thread.terminate()
             client_thread.terminate()
             server_thread = None
             client_thread = None
 
         self.connected = NOT_CONNECTED
+        #TODO: Anything else need to be done to clean up network objects?
             
-    def send_note(self, Note):
-        if(self.connected != NOT_CONNECTED)
-            client_thread.
+    def send_note(self, note):
+        """send note wrapper method"""
+        if self.connected != NOT_CONNECTED:
+            self.client.send_note(note)
+
+    def send_volume(self, volume, track_id):
+        """send volume wrapper method"""
+        if self.connected != NOT_CONNECTED:
+            self.client.send_volume(volume, track_id)
+
+    def send_tempo(self, tempo):
+        """send tempo wrapper method"""
+        if self.connected != NOT_CONNECTED:
+            self.client.send_tempo(tempo)
+
+    def send_reverb(self, reverb, track_id):
+        """send reverb wrapper method"""
+        if self.connected != NOT_CONNECTED:
+            self.client.send_reverb(reverb, track_id)
+
+    def send_session(self, session):
+        """send session wrapper method"""
+        if self.connected != NOT_CONNECTED:
+            self.client.send_session(session)
+
+#network testing code
+if __name__ == "__main__":
+    test = NetworkHandler(None, None)
+    test.start_server("localhost", int(25000))
+    sleep(.1)
+    test.send_volume(1, 2)
+    
+            
