@@ -3,7 +3,8 @@ class MusicPlayer:
 
     NUM_PAGES = 8
     NUM_TRACKS = 3
-    
+    MIN_TEMPO = 40
+    MAX_TEMPO = 240   
  
     def __init__(self):
         """Constructor for music_player"""
