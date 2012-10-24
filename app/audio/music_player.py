@@ -5,12 +5,19 @@ class MusicPlayer:
     NUM_TRACKS = 3
     
  
-    def __init__(self, NetworkHandler):
+    def __init__(self):
+        """Constructor for music_player"""
+        """Make sure to call add_network_handler once initialized"""
         self.instruments = [] #instrument/track volume is here
         self.tempo = 120 #BPM (for now)
         self.global_volume = 0.75 #between 0 and 1
         self.page_index = 0 #1st page
         self.play_all = False
+        self.playhead_index = 0 #how do we want to implement this?
+        
+
+    def add_network_handler(self, network_handler):
+        self.network_handler = network_handler
         
     """playback methods"""
     def play_page(self, page_id):

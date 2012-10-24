@@ -1,7 +1,7 @@
 import threading
 import time
-from Client import Client
-from ServerObj import ServerObj
+from client import Client
+from server_obj import ServerObj
 
 class NetworkThread(threading.Thread):
     def __init__(self, name, network_object):
