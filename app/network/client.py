@@ -7,9 +7,11 @@ from PodSixNet.Connection import connection, ConnectionListener
 
 class Client(ConnectionListener):
     
-    def __init__(self, host, port):
+    def __init__(self, music_player, gui, host, port):
             self.Connect((host, port))
-            print "client started"
+            self.music_player = music_player
+            self.gui = gui
+            print "##client started"
 
     def __del__(self):
         pass
@@ -39,7 +41,7 @@ class Client(ConnectionListener):
         """callback for network triggered note addition"""
         #data['note_data'] = Note
         
-        #tell the music player to add the note
+        
         #tell the GUI to add the note
         pass
         

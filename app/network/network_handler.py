@@ -14,6 +14,10 @@ from server_obj import ServerObj
 from network_thread import NetworkThread
 from time import sleep
 
+#TODO: Handle this!!!!!
+#http://stackoverflow.com/questions/72852/how-to-do-relative-imports-in-python
+#from ..audio.music_player import Note
+
 NOT_CONNECTED = 0
 NETWORK_CLIENT = 1
 NETWORK_SERVER = 2
@@ -35,7 +39,7 @@ class NetworkHandler():
 
     def connect_to_server(self, server_ip, server_port):
         """server_ip sent as a string, server_port as an int"""
-        self.client = Client(server_ip, server_port)
+        self.client = Client(self.music_player, self.gui, server_ip, server_port)
         #TODO: Check to make sure client was made successfully?
         self.client_thread = NetworkThread("client", self.client)
         self.client_thread.start()
@@ -48,7 +52,7 @@ class NetworkHandler():
         self.server_thread = NetworkThread("server", self.server)
         self.server_thread.start()
 
-        self.client = Client(server_ip, server_port)
+        self.client = Client(self.music_player, self.gui, server_ip, server_port)
         #TODO: Check to make sure client was made successfully?
         self.client_thread = NetworkThread("client", self.client)
         self.client_thread.start()
