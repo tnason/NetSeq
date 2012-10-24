@@ -3,9 +3,20 @@ class MusicPlayer:
 
     NUM_PAGES = 8
     NUM_TRACKS = 3
+
+    # Parameters for GUI to build sliders
     MIN_TEMPO = 40
-    MAX_TEMPO = 240   
- 
+    MAX_TEMPO = 240
+    MIN_VOLUME = 0.0
+    MAX_VOLUME = 1.0
+    MIN_REVERB = 0.0
+    MAX_REVERB = 1.0 
+
+    # Instrument descriptive constants
+    WAVETABLE_A = 0
+    WAVETABLE_B = 1
+    DRUM_KIT = 2
+
     def __init__(self):
         """Constructor for music_player"""
         """Make sure to call add_network_handler once initialized"""
@@ -69,10 +80,12 @@ class MusicPlayer:
 
     """getter methods for GUI"""
     def get_reverb(self, track_id):
-        pass
+        # TODO: return non-dummy value
+        return 0.0
 
     def get_volume(self, track_id):
-        pass
+        # TODO: return non-dummy value
+        return 0.0
 
     def get_global_volume(self):
         pass
