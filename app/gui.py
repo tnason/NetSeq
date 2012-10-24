@@ -21,12 +21,18 @@ class GUI(Widget):
         network -- network client and server handler
 
         """
+
+        # Perform widget initializations
         super(GUI, self).__init__()
 
+        # OVERALL STRUCTURE
         WINDOW_WIDTH = 800
         WINDOW_HEIGHT = 600
-
         OUTER_PADDING = 20
+
+        # Set default parameters to be used in accurately loading an
+        # initial state to the GUI
+        self.current_track = MusicPlayer.WAVETABLE_A
 
         # BUTTON GRID
         NOTE_BUTTON_WIDTH = 50
@@ -124,7 +130,7 @@ class GUI(Widget):
         # Button to play all pages
         playall_button = Button(width=PLAYALL_BUTTON_WIDTH,
                                 height=PLAYALL_BUTTON_HEIGHT,
-                                text="Play all", 
+                                text='Play all', 
                                 text_size=[PLAYALL_BUTTON_WIDTH, 
                                     PLAYALL_BUTTON_HEIGHT], 
                                 font_size=PLAYALL_BUTTON_FONT_SIZE,
@@ -184,9 +190,9 @@ class GUI(Widget):
         TAB_HEADER_WIDTH = 48
         TAB_HEADER_HEIGHT = TAB_HEADER_WIDTH
         TAB_HEADER_FONT_SIZE = 20
-        SECTION_LABEL_FONT_SIZE = 10
+        SECTION_LABEL_FONT_SIZE = 16
         SECTION_LABEL_HEIGHT = 30
-        ELEMENT_LABEL_FONT_SIZE = 8
+        ELEMENT_LABEL_FONT_SIZE = 10
         ELEMENT_LABEL_HEIGHT = 20
         TAB_CONTENT_HEIGHT = TABS_HEIGHT - TAB_HEADER_HEIGHT
         TAB_CONTENT_TOP = TABS_Y + TAB_CONTENT_HEIGHT
@@ -209,7 +215,6 @@ class GUI(Widget):
         music_tab_content = Widget(width=TABS_WIDTH, height=TAB_CONTENT_HEIGHT)
         tabs.default_tab_content = music_tab_content
         tabs.default_tab.text = ""
-        # TODO: replace this image with 48x48
         tabs.default_tab.background_normal = \
             "../assets/icons/audio-keyboard.png"
         tabs.default_tab.background_down = \
@@ -225,11 +230,102 @@ class GUI(Widget):
         global_music_label.top = TAB_CONTENT_TOP - TAB_SECTION_PADDING
         music_tab_content.add_widget(global_music_label)
         
-        global_volume_slider = Slider(min=MusicPlayer.MIN_TEMPO, 
-                                      max=MusicPlayer.MAX_TEMPO,
-                                      value=music_player.tempo,
-                                      orientation='horizontal')
+        MUSIC_SLIDER_WIDTH = TABS_WIDTH - 40
+        MUSIC_SLIDER_HEIGHT = 20
 
+        # Note: these sliders buttons have a predefined height, so we are a
+        # slave to that height for positioning the sliders
+        global_volume_slider = Slider(min=MusicPlayer.MIN_VOLUME, 
+                                      max=MusicPlayer.MAX_VOLUME,
+                                      value=music_player.global_volume,
+                                      orientation='horizontal',
+                                      height=MUSIC_SLIDER_HEIGHT,
+                                      width=MUSIC_SLIDER_WIDTH)
+        global_volume_slider.center_x = tabs.center_x
+        global_volume_slider.top = global_music_label.y - TAB_ELEMENT_PADDING
+        music_tab_content.add_widget(global_volume_slider)
+        self.global_volume_slider = global_volume_slider
+
+        global_volume_label = Label(text="Volume",
+                                    font_size=ELEMENT_LABEL_FONT_SIZE,
+                                    width=TABS_WIDTH,
+                                    height=ELEMENT_LABEL_HEIGHT,
+                                    valign='middle')
+        global_volume_label.center_x = tabs.center_x
+        global_volume_label.top = global_volume_slider.y - TAB_ELEMENT_PADDING
+        music_tab_content.add_widget(global_volume_label)
+        
+        global_tempo_slider = Slider(min=MusicPlayer.MIN_TEMPO, 
+                                     max=MusicPlayer.MAX_TEMPO,
+                                     value=music_player.tempo,
+                                     orientation='horizontal',
+                                     height=MUSIC_SLIDER_HEIGHT,
+                                     width=MUSIC_SLIDER_WIDTH)
+        global_tempo_slider.center_x = tabs.center_x
+        global_tempo_slider.top = global_volume_label.y - TAB_ELEMENT_PADDING
+        music_tab_content.add_widget(global_tempo_slider)
+        self.global_tempo_slider = global_tempo_slider
+
+        global_tempo_label = Label(text="Tempo",
+                                   font_size=ELEMENT_LABEL_FONT_SIZE,
+                                   width=TABS_WIDTH,
+                                   height=ELEMENT_LABEL_HEIGHT,
+                                   valign='middle')
+        global_tempo_label.center_x = tabs.center_x
+        global_tempo_label.top = global_tempo_slider.y - TAB_ELEMENT_PADDING
+        music_tab_content.add_widget(global_tempo_label)
+
+        # Instrument settings
+        track_music_label = Label(text='Track', 
+                                  font_size=SECTION_LABEL_FONT_SIZE,
+                                  width=TABS_WIDTH, 
+                                  height=SECTION_LABEL_HEIGHT,
+                                  valign='middle')
+        track_music_label.center_x = tabs.center_x
+        track_music_label.top = global_tempo_label.y - TAB_SECTION_PADDING
+        music_tab_content.add_widget(track_music_label)
+        
+        track_volume_initial = music_player.get_volume(self.current_track)
+        track_volume_slider = Slider(min=MusicPlayer.MIN_VOLUME, 
+                                     max=MusicPlayer.MAX_VOLUME,
+                                     value=track_volume_initial,
+                                     orientation='horizontal',
+                                     height=MUSIC_SLIDER_HEIGHT,
+                                     width=MUSIC_SLIDER_WIDTH)
+        track_volume_slider.center_x = tabs.center_x
+        track_volume_slider.top = track_music_label.y - TAB_ELEMENT_PADDING
+        music_tab_content.add_widget(track_volume_slider)
+        self.track_volume_slider = track_volume_slider
+
+        track_volume_label = Label(text='Volume',
+                                   font_size=ELEMENT_LABEL_FONT_SIZE,
+                                   width=TABS_WIDTH,
+                                   height=ELEMENT_LABEL_HEIGHT,
+                                   valign='middle')
+        track_volume_label.center_x = tabs.center_x
+        track_volume_label.top = track_volume_slider.y - TAB_ELEMENT_PADDING
+        music_tab_content.add_widget(track_volume_label)
+        
+        track_reverb_initial = music_player.get_reverb(self.current_track)
+        track_reverb_slider = Slider(min=MusicPlayer.MIN_REVERB,
+                                     max=MusicPlayer.MAX_REVERB,
+                                     value=track_reverb_initial,
+                                     orientation='horizontal',
+                                     height=MUSIC_SLIDER_HEIGHT,
+                                     width=MUSIC_SLIDER_WIDTH)
+        track_reverb_slider.center_x = tabs.center_x
+        track_reverb_slider.top = track_volume_label.y - TAB_ELEMENT_PADDING
+        music_tab_content.add_widget(track_reverb_slider)
+        self.track_reverb_slider = track_reverb_slider
+
+        track_reverb_label = Label(text='Reverb',
+                                   font_size=ELEMENT_LABEL_FONT_SIZE,
+                                   width=TABS_WIDTH,
+                                   height=ELEMENT_LABEL_HEIGHT,
+                                   valign='middle')
+        track_reverb_label.center_x = tabs.center_x
+        track_reverb_label.top = track_reverb_slider.y - TAB_ELEMENT_PADDING
+        music_tab_content.add_widget(track_reverb_label)
 
         # Network tab
         network_tab = TabbedPanelHeader()
@@ -247,6 +343,49 @@ class GUI(Widget):
         system_tab.background_down = \
             "../assets/icons/computer-4.png"
         tabs.add_widget(system_tab)
+
+        system_tab_content = Widget(width=TABS_WIDTH, height=TAB_CONTENT_HEIGHT)
+        system_tab.content = system_tab_content
+
+        NUM_SYSTEM_BUTTONS = 3
+        SYSTEM_BUTTON_PADDING = 20
+        SYSTEM_BUTTON_FONT_SIZE = 24
+        SYSTEM_BUTTON_WIDTH = TABS_WIDTH - SYSTEM_BUTTON_PADDING * 2
+        SYSTEM_BUTTON_HEIGHT = (TAB_CONTENT_HEIGHT - SYSTEM_BUTTON_PADDING *
+                               (NUM_SYSTEM_BUTTONS + 1)) / NUM_SYSTEM_BUTTONS
+
+        # Load button
+        load_button = Button(text='Load', width=SYSTEM_BUTTON_WIDTH,
+                             height=SYSTEM_BUTTON_HEIGHT,
+                             text_size=[SYSTEM_BUTTON_WIDTH, 
+                                        SYSTEM_BUTTON_HEIGHT],
+                             font_size=SYSTEM_BUTTON_FONT_SIZE,
+                             halign='center', valign='middle')
+        load_button.center_x = tabs.center_x
+        load_button.top = TAB_CONTENT_TOP - SYSTEM_BUTTON_PADDING
+        system_tab_content.add_widget(load_button)        
+
+        # Save button
+        save_button = Button(text='Save', width=SYSTEM_BUTTON_WIDTH,
+                             height=SYSTEM_BUTTON_HEIGHT,
+                             text_size=[SYSTEM_BUTTON_WIDTH, 
+                                        SYSTEM_BUTTON_HEIGHT],
+                             font_size=SYSTEM_BUTTON_FONT_SIZE,
+                             halign='center', valign='middle')
+        save_button.center_x = tabs.center_x
+        save_button.top = load_button.y - SYSTEM_BUTTON_PADDING
+        system_tab_content.add_widget(save_button)        
+
+        # Quit button
+        quit_button = Button(text='Quit', width=SYSTEM_BUTTON_WIDTH,
+                             height=SYSTEM_BUTTON_HEIGHT,
+                             text_size=[SYSTEM_BUTTON_WIDTH, 
+                                        SYSTEM_BUTTON_HEIGHT],
+                             font_size=SYSTEM_BUTTON_FONT_SIZE,
+                             halign='center', valign='middle')
+        quit_button.center_x = tabs.center_x
+        quit_button.top = save_button.y - SYSTEM_BUTTON_PADDING
+        system_tab_content.add_widget(quit_button)        
 
     def __del__(self):
         """Destroy this instance of the GUI"""
@@ -313,7 +452,7 @@ class NetSeqApp(App):
     def build(self):
         """Build GUI"""
         music_player = MusicPlayer()
-        gui_widget = GUI(None, None)
+        gui_widget = GUI(music_player, None)
         return gui_widget
 
 if __name__ == "__main__":
