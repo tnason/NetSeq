@@ -246,6 +246,9 @@ class GUI(Widget):
             "../assets/icons/computer-4.png"
         tabs.add_widget(system_tab)
 
+    def __del__(self):
+        """Destroy this instance of the GUI"""
+        pass
 
     def set_note(self, note):
         """Set a note in note grid to on or off
