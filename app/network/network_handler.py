@@ -73,7 +73,11 @@ class NetworkHandler():
 
         self.connected = NOT_CONNECTED
         #TODO: Anything else need to be done to clean up network objects?
-            
+ 
+    def get_server_ip(self):
+        """Get IP address of the server if one is active"""
+        pass
+           
     def send_note(self, note):
         """send note wrapper method"""
         if self.connected != NOT_CONNECTED:
