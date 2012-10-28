@@ -33,7 +33,8 @@ class GUI(Widget):
 
         # Set default parameters to be used in accurately loading an
         # initial state to the GUI
-        self.current_track = MusicPlayer.WAVETABLE_A
+        self.music_player = music_player
+        self.track_index = MusicPlayer.WAVETABLE_A
 
         # BUTTON GRID
         NOTE_BUTTON_WIDTH = 50
@@ -80,8 +81,10 @@ class GUI(Widget):
             for col in range(0, NOTE_BUTTON_COLS):
                 col_button = ToggleButton(width=NOTE_BUTTON_WIDTH,
                                           height=NOTE_BUTTON_HEIGHT)
+                col_button.id = 'row' + str(row) + ',col' + str(col)
                 col_button.x = col_x
                 col_button.top = row_top
+                col_button.bind(on_press=self.trigger_note)
                 row_notes.append(col_button)
                 self.add_widget(col_button)
                 col_x = col_x + NOTE_BUTTON_WIDTH + NOTE_BUTTON_PADDING
@@ -98,11 +101,13 @@ class GUI(Widget):
         PLAYBACK_CENTER_Y = PLAYBACK_Y + (PLAYBACK_HEIGHT / 2)
         PLAYBACK_TOP = PLAYBACK_Y + PLAYBACK_HEIGHT
 
-        PLAY_BUTTON_WIDTH = 50
-        PLAY_BUTTON_HEIGHT = 50
-        PLAYALL_BUTTON_WIDTH = 50
-        PLAYALL_BUTTON_HEIGHT = 50
+        PLAY_BUTTON_WIDTH = 48
+        PLAY_BUTTON_HEIGHT = 48
+        PLAYALL_BUTTON_WIDTH = 60
+        PLAYALL_BUTTON_HEIGHT = PLAY_BUTTON_HEIGHT / 2
         PLAYALL_BUTTON_FONT_SIZE = 8
+        PLAYALL_BUTTON_TEXT_SIZE = [PLAYALL_BUTTON_WIDTH, 
+                                    PLAYALL_BUTTON_HEIGHT]
         PAGE_BUTTON_WIDTH = 25
         PAGE_BUTTON_HEIGHT = 30
         NUM_PAGE_BUTTONS = MusicPlayer.NUM_PAGES
@@ -122,25 +127,50 @@ class GUI(Widget):
         
         # Play/pause button
         PLAY_BUTTON_X = PLAYBACK_X + PLAYBACK_PADDING
-        play_button = Button(width=PLAY_BUTTON_WIDTH, 
+        # TODO: add a border for this button
+        play_button = ToggleButton(width=PLAY_BUTTON_WIDTH, 
                              height=PLAY_BUTTON_HEIGHT)
+        play_button.bind(on_press=self.play_pause)
+        play_button.background_normal = \
+            "../assets/icons/media-playback-start-4.png"
+        play_button.background_down = \
+            "../assets/icons/media-playback-pause-4.png"
         play_button.x = PLAY_BUTTON_X
         play_button.center_y = PLAYBACK_CENTER_Y
         self.play_button = play_button
         self.add_widget(play_button)
 
-        # Button to play all pages
-        playall_button = Button(width=PLAYALL_BUTTON_WIDTH,
-                                height=PLAYALL_BUTTON_HEIGHT,
-                                text='Play all', 
-                                text_size=[PLAYALL_BUTTON_WIDTH, 
-                                    PLAYALL_BUTTON_HEIGHT], 
-                                font_size=PLAYALL_BUTTON_FONT_SIZE,
-                                halign='center', valign='middle')
-        playall_button.x = play_button.right + PLAYBACK_PADDING
-        playall_button.center_y = PLAYBACK_CENTER_Y
-        self.playall_button = playall_button
-        self.add_widget(playall_button)
+        # Buttons to play one page or all
+        one_page_button = ToggleButton(width=PLAYALL_BUTTON_WIDTH,
+                                       height=PLAYALL_BUTTON_HEIGHT,
+                                       text='One page',
+                                       text_size=PLAYALL_BUTTON_TEXT_SIZE,
+                                       font_size=PLAYALL_BUTTON_FONT_SIZE,
+                                       halign='center', valign='middle')
+        one_page_button.bind(on_press=self.play_one_page)
+        one_page_button.x = play_button.right + PLAYBACK_PADDING
+        one_page_button.top = PLAYBACK_CENTER_Y + PLAYALL_BUTTON_HEIGHT
+        self.one_page_button = one_page_button
+        self.add_widget(one_page_button)
+
+        all_pages_button = ToggleButton(width=PLAYALL_BUTTON_WIDTH,
+                                        height=PLAYALL_BUTTON_HEIGHT,
+                                        text='All pages', 
+                                        text_size=PLAYALL_BUTTON_TEXT_SIZE,
+                                        font_size=PLAYALL_BUTTON_FONT_SIZE,
+                                        halign='center', valign='middle')
+        all_pages_button.bind(on_press=self.play_all_pages)
+        all_pages_button.x = one_page_button.x
+        all_pages_button.top = PLAYBACK_CENTER_Y
+        self.all_pages_button = all_pages_button
+        self.add_widget(all_pages_button)
+
+        if music_player.play_all == False:
+            one_page_button.state = 'down'
+            all_pages_button.state = 'normal'
+        elif music_player.play_all == True:
+            one_page_button.state = 'normal'
+            all_pages_button.state = 'down'
 
         # Page selection buttons
         self.page_buttons = []
@@ -149,7 +179,7 @@ class GUI(Widget):
                            PAGE_LABEL_HEIGHT], font_size=PAGE_LABEL_FONT_SIZE,
                            width=PAGE_LABEL_WIDTH, height=PAGE_LABEL_HEIGHT,
                            halign='center', valign='middle')
-        page_button_x = playall_button.right + PLAYBACK_PADDING
+        page_button_x = all_pages_button.right + PLAYBACK_PADDING
         page_label.x = page_button_x
         page_label.top = PLAYBACK_CENTER_Y - (PAGE_BUTTON_HEIGHT / 2) - \
                          PAGE_LABEL_OFFSET
@@ -167,14 +197,19 @@ class GUI(Widget):
 
         self.page_buttons = page_buttons
 
+        # Select the current music player's page with the GUI
+        page_buttons[music_player.page_index].state = 'down'
+
         # Track selection buttons
         track_buttons = []
         self.track_buttons = []
         track_button_x = page_buttons[len(page_buttons) - 1].right + \
                          PLAYBACK_PADDING
-        for track in range(0, NUM_TRACK_BUTTONS):
+        for track_index in range(0, NUM_TRACK_BUTTONS):
+            track_id = 'track' + str(track_index)
             track_button = ToggleButton(width=TRACK_BUTTON_WIDTH, 
-                                        height=TRACK_BUTTON_HEIGHT)
+                                        height=TRACK_BUTTON_HEIGHT, id=track_id)
+            track_button.bind(on_press=self.select_track)
             track_button.x = track_button_x
             track_button.center_y = PLAYBACK_CENTER_Y
             track_buttons.append(track_button)
@@ -182,6 +217,9 @@ class GUI(Widget):
             track_button_x += TRACK_BUTTON_WIDTH
         
         self.track_buttons = track_buttons        
+    
+        # Select the current track in the GUI
+        track_buttons[self.track_index].state = 'down'
 
         # SETTINGS TABS
         TABS_X = OUTER_PADDING + GRID_WIDTH + OUTER_PADDING
@@ -298,7 +336,7 @@ class GUI(Widget):
         track_music_label.top = global_tempo_label.y - TAB_SECTION_PADDING
         music_tab_content.add_widget(track_music_label)
         
-        track_volume_initial = music_player.get_volume(self.current_track)
+        track_volume_initial = music_player.get_volume(self.track_index)
         track_volume_slider = Slider(min=MusicPlayer.MIN_VOLUME, 
                                      max=MusicPlayer.MAX_VOLUME,
                                      value=track_volume_initial,
@@ -320,7 +358,7 @@ class GUI(Widget):
         track_volume_label.top = track_volume_slider.y - TAB_ELEMENT_PADDING
         music_tab_content.add_widget(track_volume_label)
         
-        track_reverb_initial = music_player.get_reverb(self.current_track)
+        track_reverb_initial = music_player.get_reverb(self.track_index)
         track_reverb_slider = Slider(min=MusicPlayer.MIN_REVERB,
                                      max=MusicPlayer.MAX_REVERB,
                                      value=track_reverb_initial,
@@ -566,18 +604,87 @@ class GUI(Widget):
         pass
 
     """Internal methods"""
+    """ XXX 
+        Buttons utilize a Kivy glitch where the callback takes two
+        arguments, typically (instance, value). Having a call to a 'self'
+        function pushes instance to the second value.
+        Maybe one day if Kivy changes this could break the operation of our
+        ToggleButtons if the order in which parameters are sent changes
+    """
+
+    def trigger_note(self, button):
+
+        button_id = button.id
+        row_str, col_str = button_id.split(',')
+        row_index = int(row_str.replace('row', ''))
+        col_index = int(col_str.replace('col', ''))
+
+        if button.state == 'down':
+            turn_on = True
+            print '@@ Turn on note'
+        elif button.state == 'normal':
+            turn_on = False
+            print '@@ Turn off note'
+
+        print '@@ Row: ', str(row_index), ', Column: ', str(col_index)
+
+        trigger_data = Note(self.track_index, self.music_player.page_index,
+                            col_index, row_index, turn_on)
+
+        self.music_player.gui_set_note(trigger_data)
+    
     def select_page(self, button):
-        """ XXX 
-            This utilizes a Kivy glitch where the callback takes two
-            arguments, typically (instance, value). Having a call to a 'self'
-            function pushes instance to the second value.
-            Maybe one day if Kivy changes this could break the operation of our
-            ToggleButtons if the order in which parameters are sent changes
-        """
+        # On press: deselect all other selected pages so only on is selected
         if button.state == 'down':
             button_id = button.id
-            page_index = int(button_id.replace('page', ''))
-            print "Page index: ", page_index
+            page_select_index = int(button_id.replace('page', ''))
+            for page_index in range(0, len(self.page_buttons)):
+                if page_index != page_select_index:
+                    page_button = self.page_buttons[page_index]
+                    page_button.state = 'normal'
+            self.music_player.page_index = page_select_index
+        # If user tries to de-select current page, don't let them!
+        elif button.state == 'normal':
+            button.state = 'down'
+
+    def select_track(self, button):
+        # On press, deselect other tracks
+        if button.state == 'down':
+            button_id = button.id
+            track_select_index = int(button_id.replace('track', ''))
+            for track_index in range(0, len(self.track_buttons)):
+                if track_index != track_select_index:
+                    track_button = self.track_buttons[track_index]
+                    track_button.state = 'normal'
+            self.track_index = track_select_index
+        # On de-selection, keep the button pressed -- we need to have track
+        # selected
+        elif button.state == 'normal':
+            button.state = 'down'
+
+    def play_pause(self, button):
+        if button.state == 'down':
+            print '@@ Play'
+        elif button.state == 'normal':
+            print '@@ Pause'
+
+    def play_all_pages(self, button):
+        # Deselect one-page button, set music player to play all
+        if button.state == 'down':
+            self.one_page_button.state = 'normal'
+            self.music_player.play_all = True
+        # Consecutive presses: do nothing
+        elif button.state == 'normal':
+            button.state = 'down'
+
+    def play_one_page(self, button):
+        # Deselect all-pages button, set music player to play one page
+        if button.state == 'down':
+            self.all_pages_button.state = 'normal'
+            self.music_player.play_all = False
+        # Consecutive presses: do nothing
+        elif button.state == 'normal':
+            button.state = 'down'
 
 class NetSeqApp(App):
     """Kivy application that kicks off GUI"""
