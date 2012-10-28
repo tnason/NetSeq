@@ -41,8 +41,9 @@ class Client(ConnectionListener):
     #Network events
     def Network_set_note(self, data):
         """callback for network triggered note addition"""
-        #data['note_data'] = Note
-        
+        #data['note_data'] = note
+
+        #TODO: Make sure this passes in the data in suitable form for the music_player and GUI
         self.music_player.network_set_note(data['note_data'])
         self.gui.set_note(data['note_data'])
         pass
@@ -52,19 +53,20 @@ class Client(ConnectionListener):
         """callback for network triggered volume change"""
         #data['volume_data'] = volume
         #data['track_id'] = track_id
+        #TODO: Remove these DEBUG print statements
         print "volume: " + str(data['volume_data'])
         print "track id: " + str(data['track_id'])
         
-        #tell the music player to change volume
-        #tell the GUI to change volume
+        self.music_player.network_set_volume(data['track_id'], data['volume_data'])
+        self.gui.set_volume(data['track_id'], data['volume_data'])
         pass
 
     def Network_set_tempo(self, data):
         """callback for network triggered tempo change"""
         #data['tempo_data'] = tempo
         
-        #tell the music player to change tempo
-        #tell the GUI to change tempo
+        self.music_player.network_set_tempo(data['tempo_data'])
+        self.gui.set_tempo(data['tempo_data'])
         pass
 
     def Network_set_reverb(self, data):
@@ -72,16 +74,16 @@ class Client(ConnectionListener):
         #data['reverb_data'] = reverb
         #data['track_id'] = track_id
 
-        #tell the music player to change reverb
-        #tell the GUI to change reverb
+        self.music_player.network_set_reverb(data['track_id'], data['reverb_data'])
+        self.gui.set_reverb(data['track_id'], data['reverb_data'])
         pass
 
     def Network_set_session(self, data):
         """callback for network triggered session load"""
         #data['session_data'] = session
         
-        #tell the music player to load a session
-        #tell the GUI to reload the session
+        self.music_player.set_session(data['session_data'])
+        self.gui.new_session()
         pass
 
     #built in Network events
