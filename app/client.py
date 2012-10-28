@@ -2,6 +2,8 @@
 import sys
 from time import sleep
 from sys import stdin, exit
+from gui import GUI
+from music_player import MusicPlayer
 
 from PodSixNet.Connection import connection, ConnectionListener
 
@@ -41,8 +43,8 @@ class Client(ConnectionListener):
         """callback for network triggered note addition"""
         #data['note_data'] = Note
         
-        
-        #tell the GUI to add the note
+        self.music_player.network_set_note(data['note_data'])
+        self.gui.set_note(data['note_data'])
         pass
         
 

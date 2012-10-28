@@ -1,8 +1,14 @@
+from pyo import *
+
 class MusicPlayer:
     """Playback engine for sequencer samples and sounds"""
 
     NUM_PAGES = 8
+    NUM_ROWS = 8
+    NUM_COLS = 8
     NUM_TRACKS = 3
+
+    SECONDS_PER_MIN = 60
 
     # Parameters for GUI to build sliders
     MIN_TEMPO = 40
@@ -26,16 +32,29 @@ class MusicPlayer:
         self.page_index = 0 #1st page
         self.play_all = False
         self.playhead_index = 0 #how do we want to implement this?
+
+        self.server = Server()
+        server.boot()
+
+        self.playhead_metronome = metro(time=SECONDS_PER_MIN/self.tempo)
+        metronome_callback = TrigFunc(self.playhead_metronome, function=step_player)
         
+        
+    def step_player(self):
+        #increment playhead
+        #play instruments one beat (load next beat)
+        pass
 
     def add_network_handler(self, network_handler):
         self.network_handler = network_handler
         
     """playback methods"""
     def play_page(self, page_id):
+        #start metronome, make sure to loop at end of page
         pass
 
     def play_all(self):
+        #start metronome
         pass
 
     def pause(self):
@@ -56,6 +75,8 @@ class MusicPlayer:
         pass
 
     def gui_set_tempo(self, tempo):
+        #self.playhead_metronome.setTime(SECONDS_PER_MIN/tempo)
+        #self.tempo = tempo
         pass
 
     def gui_set_reverb(self, track_id, reverb):
@@ -69,6 +90,8 @@ class MusicPlayer:
         pass
 
     def network_set_tempo(self, tempo):
+        #self.playhead_metronome.setTime(SECONDS_PER_MIN/tempo)
+        #self.tempo = tempo
         pass
 
     def network_set_reverb(self, track_id, reverb):

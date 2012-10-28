@@ -13,10 +13,8 @@ from client import Client
 from server_obj import ServerObj
 from network_thread import NetworkThread
 from time import sleep
-
-#TODO: Handle this!!!!!
-#http://stackoverflow.com/questions/72852/how-to-do-relative-imports-in-python
-#from ..audio.music_player import Note
+from music_player import MusicPlayer
+from gui import GUI
 
 NOT_CONNECTED = 0
 NETWORK_CLIENT = 1
@@ -102,6 +100,8 @@ class NetworkHandler():
         """send session wrapper method"""
         if self.connected != NOT_CONNECTED:
             self.client.send_session(session)
+
+
 
 #network testing code
 if __name__ == "__main__":
