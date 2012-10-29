@@ -34,7 +34,7 @@ class GUI(Widget):
         # Set default parameters to be used in accurately loading an
         # initial state to the GUI
         self.music_player = music_player
-        self.track_index = MusicPlayer.WAVETABLE_A
+        self.track_id = MusicPlayer.WAVETABLE_A
 
         # BUTTON GRID
         NOTE_BUTTON_WIDTH = 50
@@ -56,7 +56,7 @@ class GUI(Widget):
 
         # For each row, create labels and notes
         self.row_labels = []
-        self.notes = []
+        self.note_buttons = []
 
         row_top = GRID_Y + GRID_HEIGHT
 
@@ -89,7 +89,7 @@ class GUI(Widget):
                 self.add_widget(col_button)
                 col_x = col_x + NOTE_BUTTON_WIDTH + NOTE_BUTTON_PADDING
                 
-            self.notes.append(row_notes)
+            self.note_buttons.append(row_notes)
             row_top = row_top - NOTE_BUTTON_PADDING - NOTE_BUTTON_HEIGHT
 
         # PLAYBACK MENU
@@ -219,7 +219,7 @@ class GUI(Widget):
         self.track_buttons = track_buttons        
     
         # Select the current track in the GUI
-        track_buttons[self.track_index].state = 'down'
+        track_buttons[self.track_id].state = 'down'
 
         # SETTINGS TABS
         TABS_X = OUTER_PADDING + GRID_WIDTH + OUTER_PADDING
@@ -336,7 +336,7 @@ class GUI(Widget):
         track_music_label.top = global_tempo_label.y - TAB_SECTION_PADDING
         music_tab_content.add_widget(track_music_label)
         
-        track_volume_initial = music_player.get_volume(self.track_index)
+        track_volume_initial = music_player.get_volume(self.track_id)
         track_volume_slider = Slider(min=MusicPlayer.MIN_VOLUME, 
                                      max=MusicPlayer.MAX_VOLUME,
                                      value=track_volume_initial,
@@ -358,7 +358,7 @@ class GUI(Widget):
         track_volume_label.top = track_volume_slider.y - TAB_ELEMENT_PADDING
         music_tab_content.add_widget(track_volume_label)
         
-        track_reverb_initial = music_player.get_reverb(self.track_index)
+        track_reverb_initial = music_player.get_reverb(self.track_id)
         track_reverb_slider = Slider(min=MusicPlayer.MIN_REVERB,
                                      max=MusicPlayer.MAX_REVERB,
                                      value=track_reverb_initial,
@@ -628,7 +628,7 @@ class GUI(Widget):
 
         print '@@ Row: ', str(row_index), ', Column: ', str(col_index)
 
-        trigger_data = Note(self.track_index, self.music_player.page_index,
+        trigger_data = Note(self.track_id, self.music_player.page_index,
                             col_index, row_index, turn_on)
 
         self.music_player.gui_set_note(trigger_data)
@@ -646,6 +646,8 @@ class GUI(Widget):
         # If user tries to de-select current page, don't let them!
         elif button.state == 'normal':
             button.state = 'down'
+        
+        self.reload_notes()
 
     def select_track(self, button):
         # On press, deselect other tracks
@@ -656,17 +658,30 @@ class GUI(Widget):
                 if track_index != track_select_index:
                     track_button = self.track_buttons[track_index]
                     track_button.state = 'normal'
-            self.track_index = track_select_index
+            self.track_id = track_select_index
         # On de-selection, keep the button pressed -- we need to have track
         # selected
         elif button.state == 'normal':
             button.state = 'down'
 
+        self.reload_notes()
+
+    def reload_notes(self):
+        # Reset button appearance to match which notes on page are selected
+        notes = self.music_player.get_current_page(self.track_id)
+        for row_index in range(0, self.music_player.NUM_ROWS):
+            for col_index in range(0, self.music_player.NUM_COLS):
+                note_value = notes[row_index][col_index]
+                if note_value == 0:
+                    self.note_buttons[row_index][col_index].state = 'normal'
+                elif note_value == 1:
+                    self.note_buttons[row_index][col_index].state = 'down'
+
     def play_pause(self, button):
         if button.state == 'down':
-            print '@@ Play'
+            self.music_player.play()
         elif button.state == 'normal':
-            print '@@ Pause'
+            self.music_player.pause()
 
     def play_all_pages(self, button):
         # Deselect one-page button, set music player to play all
