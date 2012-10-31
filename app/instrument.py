@@ -77,6 +77,10 @@ class Instrument:
 class DrumInstrument(Instrument):
     """This provides functionality for a drum sample instrument"""
 
+    # TODO: finish refining this
+    instrument_names = ["Crash", "Tom 2", "Tom 1", "Rim", "Hi Hat 2", "Hi Hat 1", "Snare", "Kick"]
+    samples = ["crashedge5.ogg", "hohh_15.ogg", "chh27.ogg"]
+
     def __init__(self):
         self.generator = None
         pass
