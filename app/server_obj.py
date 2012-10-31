@@ -19,7 +19,7 @@ class ClientChannel(Channel):
             """rebroadcast a send note command from a client to all others"""
             for c in self._server.clients:
                 if c != self:
-                    c.Send({"action": "set_note", "note_data": data['note_data']})
+                    c.Send({"action": "set_note", "note_string": data['note_string']})
 
         def Network_send_volume(self, data):
             """rebroadcast a send volume command from a client to all others"""

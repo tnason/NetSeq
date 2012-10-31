@@ -2,6 +2,7 @@ from kivy.app import App
 from kivy.uix.widget import Widget
 from music_player import Note
 from music_player import MusicPlayer
+from network_handler import NetworkHandler
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
@@ -14,7 +15,7 @@ from kivy.uix.textinput import TextInput
 class GUI(Widget):
     """Widget for all user interaction with sequencer"""
 
-    def __init__(self, music_player, network):
+    def __init__(self, music_player):
         """Create main GUI
 
         Arguments:
@@ -438,6 +439,7 @@ class GUI(Widget):
                                      text_size=NETWORK_BUTTON_TEXT_SIZE,
                                      font_size=NETWORK_BUTTON_FONT_SIZE,
                                      halign='center', valign='middle')
+        server_start_button.bind(on_press=self.start_server)
         server_start_button.center_x = tabs.center_x
         server_start_button.top = server_ip_input.y - TAB_ELEMENT_PADDING
         network_tab_content.add_widget(server_start_button)
@@ -449,6 +451,7 @@ class GUI(Widget):
                                     text_size=NETWORK_BUTTON_TEXT_SIZE,
                                     font_size=NETWORK_BUTTON_FONT_SIZE,
                                     halign='center', valign='middle')
+        join_server_button.bind(on_press=self.join_server)
         join_server_button.x = server_start_button.x
         join_server_button.top = server_start_button.y - TAB_ELEMENT_PADDING
         network_tab_content.add_widget(join_server_button)
@@ -460,6 +463,7 @@ class GUI(Widget):
                                        text_size=NETWORK_BUTTON_TEXT_SIZE,
                                        font_size=NETWORK_BUTTON_FONT_SIZE,
                                        halign='center', valign='middle')
+        end_connection_button.bind(on_press=self.end_connection)
         end_connection_button.x = server_start_button.x
         end_connection_button.top = join_server_button.y - TAB_ELEMENT_PADDING
         network_tab_content.add_widget(end_connection_button)
@@ -555,7 +559,13 @@ class GUI(Widget):
         note -- note with position in GUI and whether to turn on
 
         """
-        pass
+        if note.page_index == self.music_player.page_index and note.track_id ==\
+           self.track_id:
+           if note.turn_on == True:
+               self.note_buttons[note.row][note.column].state = 'down'
+           elif note.turn_on == False:
+               self.note_buttons[note.row][note.column].state = 'normal'
+        
 
     def set_volume(self, track_index, volume):
         """Redraw volume slider for a track at new value
@@ -603,6 +613,11 @@ class GUI(Widget):
         """Show window describing disconnected server"""
         pass
 
+    def add_network_handler(self, network_handler):
+        """Make sure this is called after init, before using the GUI"""
+        self.network_handler = network_handler
+
+
     """Internal methods"""
     """ XXX 
         Buttons utilize a Kivy glitch where the callback takes two
@@ -612,6 +627,21 @@ class GUI(Widget):
         ToggleButtons if the order in which parameters are sent changes
     """
 
+    """Network functions"""
+    def start_server(self, button):
+        server_ip = self.server_ip_input.text
+        server_port = int(self.server_port_input.text)
+        self.network_handler.start_server(server_ip, server_port)        
+
+    def join_server(self, button):
+        server_ip = self.server_ip_input.text
+        server_port = int(self.server_port_input.text)
+        self.network_handler.connect_to_server(server_ip, server_port)
+
+    def end_connection(self, button):
+        self.network_handler.terminate_connections()
+            
+    """Music functions"""
     def trigger_note(self, button):
 
         button_id = button.id
@@ -631,7 +661,8 @@ class GUI(Widget):
         trigger_data = Note(self.track_id, self.music_player.page_index,
                             col_index, row_index, turn_on)
 
-        self.music_player.gui_set_note(trigger_data)
+        self.music_player.set_note(trigger_data)
+        self.network_handler.send_note(trigger_data)
     
     def select_page(self, button):
         # On press: deselect all other selected pages so only on is selected
@@ -707,7 +738,10 @@ class NetSeqApp(App):
     def build(self):
         """Build GUI"""
         music_player = MusicPlayer()
-        gui_widget = GUI(music_player, None)
+        gui_widget = GUI(music_player)
+        network_handler = NetworkHandler(music_player, gui_widget)
+        music_player.add_network_handler(network_handler)
+        gui_widget.add_network_handler(network_handler)
         return gui_widget
 
 if __name__ == "__main__":

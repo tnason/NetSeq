@@ -34,6 +34,9 @@ class Instrument:
     def set_playhead(self):
         pass
 
+    def pause(self):
+        self.mixer.stop()
+
     def set_note(self, note):
         beat_index = note.page_index * self.music_player.NUM_COLS +\
                      note.column
@@ -127,12 +130,14 @@ class WaveInstrument(Instrument):
             self.mixer.setAmp(i, 0, 1)
         
         # Apply reverb to omixer
-        reverb = WGVerb(self.mixer[0], feedback=0.5, cutoff=3500, bal=0)
+        reverb = WGVerb(self.mixer[0], feedback=0.8, cutoff=3500, bal=1)
         
         #use generator.setBal(x) to modify reverb
         self.generator = reverb
 
     def play_step(self):
+        #If we were paused, re-enable the mixer
+        self.mixer.play()
         print "@@ Wave instrument step"
         beat_index = self.music_player.beat_index
         beat_col = self.notes[beat_index]

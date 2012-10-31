@@ -14,7 +14,6 @@ from server_obj import ServerObj
 from network_thread import NetworkThread
 from time import sleep
 from music_player import MusicPlayer
-from gui import GUI
 
 NOT_CONNECTED = 0
 NETWORK_CLIENT = 1

@@ -1,11 +1,9 @@
 #client module file
-import sys
 from time import sleep
-from sys import stdin, exit
-from gui import GUI
+from sys import exit
 from music_player import MusicPlayer
-
 from PodSixNet.Connection import connection, ConnectionListener
+import cPickle
 
 class Client(ConnectionListener):
     
@@ -24,7 +22,8 @@ class Client(ConnectionListener):
 
     def send_note(self, note):
         """function call to send note data to server"""
-        connection.Send({"action": "send_note", "note_data": note})
+        note_str = cPickle.dumps(note)
+        connection.Send({"action": "send_note", "note_string": note_str})
 
     def send_volume(self, volume, track_id):
         connection.Send({"action": "send_volume", "volume_data": volume, "track_id": track_id})
@@ -43,9 +42,9 @@ class Client(ConnectionListener):
         """callback for network triggered note addition"""
         #data['note_data'] = note
 
-        #TODO: Make sure this passes in the data in suitable form for the music_player and GUI
-        self.music_player.network_set_note(data['note_data'])
-        self.gui.set_note(data['note_data'])
+        note_data = cPickle.loads(data['note_string'])  
+        self.music_player.set_note(note_data)
+        self.gui.set_note(note_data)
         pass
         
 

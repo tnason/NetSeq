@@ -93,17 +93,21 @@ class MusicPlayer:
         pass
 
     def pause(self):
+        for instrument in self.instruments:
+            instrument.pause()
         self.metronome.stop()
 
     def set_session(self, session):
         """used to load a session into the music player"""
         pass
 
-    """GUI-called track modification functions"""
-    def gui_set_note(self, note):
+    """generic track modification functions"""
+    def set_note(self, note):
         instrument = self.instruments[note.track_id]
         instrument.set_note(note)
 
+
+    """GUI-called track modification functions"""
     def gui_set_volume(self, track_id, volume):
         pass
     
@@ -119,9 +123,6 @@ class MusicPlayer:
         pass
 
     """network-called track modification functions"""
-    def network_set_note(self, note):
-        pass
-
     def network_set_volume(self, track_id, volume):
         pass
 
