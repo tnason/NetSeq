@@ -15,8 +15,12 @@ class Instrument:
 
         self.music_player = music_player
         self.volume = .75
-        self.reverb = 0
+        self.reverb_mix = 0.0
         self.notes = []
+
+        # For generating sound
+        self.row_generators = []
+        self.mixer = Mixer(outs=1)
 
         # Initialize notes array to all zeroes
         for beat_index in range(0, music_player.NUM_BEATS):
@@ -61,7 +65,7 @@ class Instrument:
         pass
 
     def get_reverb(self):
-        pass
+        return self.reverb_mix
 
     def get_page(self, page_index):
         """ Get a page of notes with <row, col> indexing """
@@ -77,22 +81,66 @@ class Instrument:
         
         return page_notes
 
+    def play_step(self):
+        """ Walk the instrument through a step of the music """
+        #If we were paused, re-enable the mixer
+        self.mixer.play()
+        beat_index = self.music_player.beat_index
+        beat_col = self.notes[beat_index]
+
+        for row_index in range(0, len(self.row_generators)):
+            if beat_col[row_index] == 1:
+                self.row_generators[row_index].play()
+            elif beat_col[row_index] == 0:
+                self.row_generators[row_index].stop()
+
+
 class DrumInstrument(Instrument):
     """This provides functionality for a drum sample instrument"""
 
-    # TODO: finish refining this
-    instrument_names = ["Crash", "Tom 2", "Tom 1", "Rim", "Hi Hat 2", "Hi Hat 1", "Snare", "Kick"]
-    samples = ["crashedge5.ogg", "hohh_15.ogg", "chh27.ogg"]
+    names = ["Crash", "Big Tom", "Small Tom", "Rim", "Hi Hat 2", "Hi Hat 1", 
+             "Snare", "Kick"]
+    sample_files = ["crashedge5.ogg", "large_tom_40-50_1.ogg", 
+               "small_tom_40-50_2.ogg", "sidestick24.ogg", "hohh_15.ogg", 
+               "chh37.ogg", "snaretop_37.ogg", "kick_22.ogg"]
 
-    def __init__(self):
+    def __init__(self, music_player):
+        """ Create new DrumInstrument 
+
+        Arguments:
+        music_player: Parent MusicPlayer of this instrument
+
+        """
+       
+        # Default instrument constructor
+        Instrument.__init__(self, music_player)
+
+        # TODO: make this absolute and across files
+        SOUND_PATH = "../assets/sounds/osdrumkit/"
+
         self.generator = None
-        pass
+        self.sample_players = []
+        
+        for row_index in range(0, music_player.NUM_ROWS):
+            file = SOUND_PATH + self.sample_files[row_index]
+            print "@@ Making SfPlayer for: ", file
+            sample_player = SfPlayer(file)
+            sample_player.stop()
+            self.row_generators.append(sample_player)
+            self.mixer.addInput(row_index, sample_player)
+            self.mixer.setAmp(row_index, 0, .25)
 
-    def step(self):
-        pass
+        # Apply reverb to omixer
+        reverb = WGVerb(self.mixer[0], feedback=0.8, cutoff=3500, 
+                        bal=self.reverb_mix)
+        
+        #use generator.setBal(x) to modify reverb
+        # self.generator = reverb
+        self.generator = self.mixer[0]
 
     def __del__(self):
         pass
+
 
 class WaveInstrument(Instrument):
     """This provides functionality for a wave instrument"""
@@ -114,39 +162,26 @@ class WaveInstrument(Instrument):
 
         if (wavetype == self.BASS):
             table = SquareTable()
-            self.frequencies = [(freq / 2) for freq in self.C_FREQUENCIES]
+            self.frequencies = [(freq / 4) for freq in self.C_FREQUENCIES]
         elif (wavetype == self.LEAD):
             table = CosTable()
             self.frequencies = self.C_FREQUENCIES
 
         # Generate oscillators for every pitch, feed into mixer
         self.oscillators = []
-        self.mixer = Mixer(outs=1)
         for i in range(0, music_player.NUM_ROWS):
             oscillator = Osc(table=table, freq=self.frequencies[i])
             oscillator.stop()
-            self.oscillators.append(oscillator)
+            self.row_generators.append(oscillator)
             self.mixer.addInput(i, oscillator)
             self.mixer.setAmp(i, 0, 1)
         
         # Apply reverb to omixer
-        reverb = WGVerb(self.mixer[0], feedback=0.8, cutoff=3500, bal=1)
+        reverb = WGVerb(self.mixer[0], feedback=0.8, cutoff=3500, 
+                        bal=self.reverb_mix)
         
         #use generator.setBal(x) to modify reverb
         self.generator = reverb
-
-    def play_step(self):
-        #If we were paused, re-enable the mixer
-        self.mixer.play()
-        print "@@ Wave instrument step"
-        beat_index = self.music_player.beat_index
-        beat_col = self.notes[beat_index]
-
-        for row_index in range(0, self.music_player.NUM_ROWS):
-            if beat_col[row_index] == 1:
-                self.oscillators[row_index].play()
-            elif beat_col[row_index] == 0:
-                self.oscillators[row_index].stop()
 
     def __del__(self):
         pass

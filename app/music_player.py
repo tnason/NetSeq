@@ -1,4 +1,5 @@
 from instrument import WaveInstrument
+from instrument import DrumInstrument
 from pyo import *
 
 class MusicPlayer:
@@ -48,9 +49,11 @@ class MusicPlayer:
         # Create instruments
         wavetable_a = WaveInstrument(self, WaveInstrument.BASS)
         wavetable_b = WaveInstrument(self, WaveInstrument.LEAD)
+        drums = DrumInstrument(self)
         
         self.instruments.append(wavetable_a)
         self.instruments.append(wavetable_b)
+        self.instruments.append(drums)
 
         # Initialize master mixer
         self.master_mixer = Mixer(outs=1)   
