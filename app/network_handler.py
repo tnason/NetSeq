@@ -32,7 +32,6 @@ class NetworkHandler():
         self.server_thread = None
         self.client_thread = None
         self.connected = NOT_CONNECTED #integer flag indicating connection state
-        
 
     def connect_to_server(self, server_ip, server_port):
         """server_ip sent as a string, server_port as an int"""
@@ -60,13 +59,13 @@ class NetworkHandler():
             pass
             #TODO: error message?
         elif self.connected == NETWORK_CLIENT:
-            client_thread.terminate()
-            client_thread = None
+            self.client_thread.terminate()
+            self.client_thread = None
         elif self.connected == NETWORK_SERVER:
-            server_thread.terminate()
-            client_thread.terminate()
-            server_thread = None
-            client_thread = None
+            self.server_thread.terminate()
+            self.client_thread.terminate()
+            self.server_thread = None
+            self.client_thread = None
 
         self.connected = NOT_CONNECTED
         #TODO: Anything else need to be done to clean up network objects?

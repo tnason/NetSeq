@@ -1,8 +1,8 @@
 #client module file
 from time import sleep
-from sys import exit
 from music_player import MusicPlayer
 from PodSixNet.Connection import connection, ConnectionListener
+from sys import exit
 import cPickle
 
 class Client(ConnectionListener):
@@ -87,13 +87,13 @@ class Client(ConnectionListener):
 
     #built in Network events
     def Network_connected(self, data):
-    	print "You are now connected to the server"
+        print "You are now connected to the server"
 	
     def Network_error(self, data):
-	print 'error:', data['error'][1]
-	connection.Close()
+        print 'error:', data['error'][1]
+        connection.Close()
 	
     def Network_disconnected(self, data):
-	print 'Server disconnected'
-	exit()
+        print 'Server disconnected'
+        exit()
 
