@@ -21,7 +21,7 @@ class Instrument:
         # For generating sound
         self.row_generators = []
         self.mixer = Mixer(outs=1)
-
+        
         # Initialize notes array to all zeroes
         for beat_index in range(0, music_player.NUM_BEATS):
             beat_column = []
@@ -81,19 +81,6 @@ class Instrument:
         
         return page_notes
 
-    def play_step(self):
-        """ Walk the instrument through a step of the music """
-        #If we were paused, re-enable the mixer
-        self.mixer.play()
-        beat_index = self.music_player.beat_index
-        beat_col = self.notes[beat_index]
-
-        for row_index in range(0, len(self.row_generators)):
-            if beat_col[row_index] == 1:
-                self.row_generators[row_index].play()
-            elif beat_col[row_index] == 0:
-                self.row_generators[row_index].stop()
-
 
 class DrumInstrument(Instrument):
     """This provides functionality for a drum sample instrument"""
@@ -119,15 +106,20 @@ class DrumInstrument(Instrument):
         SOUND_PATH = "../assets/sounds/osdrumkit/"
 
         self.generator = None
-        self.sample_players = []
-        
+        self.sample_tables = []
+        self.generator_cutoff = False        
+
         for row_index in range(0, music_player.NUM_ROWS):
             file = SOUND_PATH + self.sample_files[row_index]
             print "@@ Making SfPlayer for: ", file
-            sample_player = SfPlayer(file)
-            sample_player.stop()
-            self.row_generators.append(sample_player)
-            self.mixer.addInput(row_index, sample_player)
+            sample_table = SndTable(file)
+            self.sample_tables.append(sample_table)
+            frequency = sample_table.getRate()
+            # duration = sample_table.getDur()
+            generator = TableRead(table=sample_table, freq=frequency)
+            generator.stop()
+            self.row_generators.append(generator)
+            self.mixer.addInput(row_index, generator)
             self.mixer.setAmp(row_index, 0, .25)
 
         # Apply reverb to omixer
@@ -140,6 +132,22 @@ class DrumInstrument(Instrument):
 
     def __del__(self):
         pass
+
+    def play_step(self):
+        """ Walk the instrument through a step of the music """
+        #If we were paused, re-enable the mixer
+        self.mixer.play()
+        beat_index = self.music_player.beat_index
+        beat_col = self.notes[beat_index]
+
+        for row_index in range(0, len(self.row_generators)):
+            generator = self.row_generators[row_index]
+            sample_table = self.sample_tables[row_index]
+            sample_dur = sample_table.getDur()
+            if beat_col[row_index] == 1:
+                generator.stop()
+                generator.reset()
+                generator.play()
 
 
 class WaveInstrument(Instrument):
@@ -167,6 +175,8 @@ class WaveInstrument(Instrument):
             table = CosTable()
             self.frequencies = self.C_FREQUENCIES
 
+        self.generator_cutoff = True
+
         # Generate oscillators for every pitch, feed into mixer
         self.oscillators = []
         for i in range(0, music_player.NUM_ROWS):
@@ -185,6 +195,19 @@ class WaveInstrument(Instrument):
 
     def __del__(self):
         pass
+
+    def play_step(self):
+        """ Walk the instrument through a step of the music """
+        #If we were paused, re-enable the mixer
+        self.mixer.play()
+        beat_index = self.music_player.beat_index
+        beat_col = self.notes[beat_index]
+
+        for row_index in range(0, len(self.row_generators)):
+            if beat_col[row_index] == 1:
+                self.row_generators[row_index].play()
+            elif beat_col[row_index] == 0:
+                self.row_generators[row_index].stop()
 
 if __name__ == "__main__":
     instrument = Instrument()
