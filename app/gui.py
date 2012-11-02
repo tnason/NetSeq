@@ -13,6 +13,7 @@ from kivy.uix.slider import Slider
 from kivy.uix.textinput import TextInput
 from kivy.graphics.instructions import Canvas
 from kivy.graphics import Rectangle
+from kivy.graphics import Color
 
 class GUI(Widget):
     """Widget for all user interaction with sequencer"""
@@ -40,9 +41,9 @@ class GUI(Widget):
         self.track_id = MusicPlayer.WAVETABLE_A
 
         # BUTTON GRID
-        NOTE_BUTTON_WIDTH = 50
-        NOTE_BUTTON_HEIGHT = 50
-        NOTE_BUTTON_PADDING = 5
+        NOTE_BUTTON_WIDTH = 48
+        NOTE_BUTTON_HEIGHT = 48
+        NOTE_BUTTON_PADDING = 7
         ROW_LABEL_WIDTH = 30
         ROW_LABEL_HEIGHT = NOTE_BUTTON_HEIGHT
         ROW_LABEL_FONT_SIZE = 14
@@ -59,11 +60,13 @@ class GUI(Widget):
 
         PLAYHEAD_WIDTH = NOTE_BUTTON_WIDTH + 4
         PLAYHEAD_HEIGHT = GRID_HEIGHT
-        PLAYHEAD_OPACITY = 0.5
+        PLAYHEAD_OPACITY = .5
+        PLAYHEAD_COLOR = Color(1.0, 1.0, 1.0)
 
         # Playhead
         playhead_widget = Widget()
         playhead_canvas = Canvas()
+        playhead_canvas.add(PLAYHEAD_COLOR)
         playhead = Rectangle(size=[PLAYHEAD_WIDTH, PLAYHEAD_HEIGHT])
         playhead_canvas.add(playhead)
         playhead_canvas.opacity = PLAYHEAD_OPACITY
