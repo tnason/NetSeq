@@ -202,6 +202,7 @@ class GUI(Widget):
         page_buttons[music_player.page_index].state = 'down'
 
         # Track selection buttons
+        # TODO: color these! And pages, too!
         track_buttons = []
         self.track_buttons = []
         track_button_x = page_buttons[len(page_buttons) - 1].right + \
@@ -290,6 +291,7 @@ class GUI(Widget):
                                       orientation='horizontal',
                                       height=MUSIC_SLIDER_HEIGHT,
                                       width=MUSIC_SLIDER_WIDTH)
+        global_volume_slider.bind(on_touch_move=self.change_global_volume)
         global_volume_slider.center_x = tabs.center_x
         global_volume_slider.top = global_music_label.y - TAB_ELEMENT_PADDING
         music_tab_content.add_widget(global_volume_slider)
@@ -664,6 +666,13 @@ class GUI(Widget):
         self.music_player.set_note(trigger_data)
         self.network_handler.send_note(trigger_data)
     
+    """ Functions for GUI to change fields within the MusicPlayer """
+    def change_global_volume(self, slider, value):
+        self.music_player.set_global_volume(slider.value)
+
+    def change_track_volume(self, slider, value):
+        pass
+
     def select_page(self, button):
         # On press: deselect all other selected pages so only on is selected
         if button.state == 'down':

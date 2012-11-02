@@ -120,7 +120,7 @@ class DrumInstrument(Instrument):
             generator.stop()
             self.row_generators.append(generator)
             self.mixer.addInput(row_index, generator)
-            self.mixer.setAmp(row_index, 0, .25)
+            self.mixer.setAmp(row_index, 0, 1)
 
         # Apply reverb to omixer
         reverb = WGVerb(self.mixer[0], feedback=0.8, cutoff=3500, 

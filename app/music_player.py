@@ -55,15 +55,19 @@ class MusicPlayer:
         self.instruments.append(wavetable_b)
         self.instruments.append(drums)
 
-        # Initialize master mixer
-        self.master_mixer = Mixer(outs=1)   
+        # Combine all tracks in mixer
+        self.track_mixer = Mixer(outs=1)
         for inst_index in range(0, len(self.instruments)):
             instrument = self.instruments[inst_index]
             generator = instrument.get_generator()
-            self.master_mixer.addInput(inst_index, generator)
-            self.master_mixer.setAmp(inst_index, 0, 1)
+            self.track_mixer.addInput(inst_index, generator)
+            self.track_mixer.setAmp(inst_index, 0, 1)
         
-        self.master_mixer.out()
+        # Prepare master output
+        self.master_out = Mixer(outs=1)
+        self.master_out.addInput(0, self.track_mixer[0])
+        self.master_out.setAmp(0, 0, self.global_volume)
+        self.master_out.out()
 
     def step(self):
         """ Step the music player through next beat """
@@ -109,13 +113,14 @@ class MusicPlayer:
         instrument = self.instruments[note.track_id]
         instrument.set_note(note)
 
+    def set_global_volume(self, volume):
+        self.global_volume = volume
+        self.master_out.setAmp(0, 0, volume)
 
     """GUI-called track modification functions"""
     def gui_set_volume(self, track_id, volume):
         pass
     
-    def gui_set_global_volume(self, volume):
-        pass
 
     def gui_set_tempo(self, tempo):
         #self.playhead_metronome.setTime(SECONDS_PER_MIN/tempo)
@@ -126,9 +131,6 @@ class MusicPlayer:
         pass
 
     """network-called track modification functions"""
-    def network_set_volume(self, track_id, volume):
-        pass
-
     def network_set_tempo(self, tempo):
         #self.playhead_metronome.setTime(SECONDS_PER_MIN/tempo)
         #self.tempo = tempo
