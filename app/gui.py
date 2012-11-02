@@ -11,6 +11,8 @@ from kivy.uix.tabbedpanel import TabbedPanelHeader
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.slider import Slider
 from kivy.uix.textinput import TextInput
+from kivy.graphics.instructions import Canvas
+from kivy.graphics import Rectangle
 
 class GUI(Widget):
     """Widget for all user interaction with sequencer"""
@@ -55,11 +57,25 @@ class GUI(Widget):
         GRID_X = OUTER_PADDING
         GRID_Y = WINDOW_HEIGHT - OUTER_PADDING - GRID_HEIGHT
 
+        PLAYHEAD_WIDTH = NOTE_BUTTON_WIDTH + 4
+        PLAYHEAD_HEIGHT = GRID_HEIGHT
+        PLAYHEAD_OPACITY = 0.5
+
+        # Playhead
+        playhead_widget = Widget()
+        playhead_canvas = Canvas()
+        playhead = Rectangle(size=[PLAYHEAD_WIDTH, PLAYHEAD_HEIGHT])
+        playhead_canvas.add(playhead)
+        playhead_canvas.opacity = PLAYHEAD_OPACITY
+        playhead_widget.canvas = playhead_canvas
+        self.add_widget(playhead_widget)
+        self.playhead = playhead
+
         # For each row, create labels and notes
         self.row_labels = []
         self.note_buttons = []
 
-        row_top = GRID_Y + GRID_HEIGHT
+        row_top = GRID_Y + GRID_HEIGHT - NOTE_BUTTON_PADDING
 
         for row in range(0, NOTE_BUTTON_ROWS):
             col_x = GRID_X + NOTE_BUTTON_PADDING
@@ -92,6 +108,12 @@ class GUI(Widget):
                 
             self.note_buttons.append(row_notes)
             row_top = row_top - NOTE_BUTTON_PADDING - NOTE_BUTTON_HEIGHT
+
+        # Set playhead start position
+        leftmost_note = self.note_buttons[0][0]
+        playhead_x = leftmost_note.center_x - (PLAYHEAD_WIDTH / 2)
+        playhead_y = GRID_Y
+        self.playhead.pos = [playhead_x, playhead_y]
 
         # PLAYBACK MENU
         PLAYBACK_X = OUTER_PADDING
@@ -552,7 +574,6 @@ class GUI(Widget):
         subtitle_label.x = TITLE_X
         self.add_widget(subtitle_label)
 
-
     def __del__(self):
         """Destroy this instance of the GUI"""
         pass
@@ -605,14 +626,28 @@ class GUI(Widget):
         """Redraw entirety of UI in response to session load"""
         pass
 
-    def move_playhead(self, column):
+    def update_playhead(self):
         """Move playhead to new column
 
         Arguments:
         column -- destination column for playhead
         
         """
-        pass
+        playhead_width = self.playhead.size[0]
+        OFFSCREEN_X = playhead_width * -1
+        beat_index = self.music_player.beat_index
+        beat_page = beat_index / self.music_player.NUM_ROWS
+        playhead_index = self.music_player.playhead_index
+        # Only show the playhead if you are currently on a page
+        # that holds the current MusicPlayer beat
+        if beat_page == self.music_player.page_index:
+            column_note_button = self.note_buttons[0][playhead_index]
+            playhead_x = column_note_button.center_x -\
+                         (playhead_width / 2)
+        else:
+            playhead_x = OFFSCREEN_X
+
+        self.playhead.pos = [playhead_x, self.playhead.pos[1]]
 
     def break_from_server(self):
         """Show window describing disconnected server"""
@@ -693,6 +728,7 @@ class GUI(Widget):
                     page_button.state = 'normal'
             self.music_player.page_index = page_select_index
             self.reload_notes()
+            self.update_playhead()
         # If user tries to de-select current page, don't let them!
         elif button.state == 'normal':
             button.state = 'down'
@@ -760,6 +796,7 @@ class NetSeqApp(App):
         """Build GUI"""
         music_player = MusicPlayer()
         gui_widget = GUI(music_player)
+        music_player.add_gui(gui_widget)
         network_handler = NetworkHandler(music_player, gui_widget)
         music_player.add_network_handler(network_handler)
         gui_widget.add_network_handler(network_handler)

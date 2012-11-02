@@ -28,7 +28,7 @@ class MusicPlayer:
 
     def __init__(self):
         """Constructor for music_player"""
-        """Make sure to call add_network_handler once initialized"""
+        """Make sure to call add_gui once initialized"""
         self.instruments = [] #instrument/track volume is here
         self.tempo = 120.0 #BPM (for now)
         self.global_volume = 0.75 #between 0 and 1
@@ -69,18 +69,27 @@ class MusicPlayer:
         self.master_out.setAmp(0, 0, self.global_volume)
         self.master_out.out()
 
+    def add_gui(self, gui):
+        """ Sets the GUI that this music player must instruct to update playhead.
+        Must be called right after constructor before operation.
+
+        Arguments:
+        gui: GUI object monitoring this player
+
+        """
+        self.gui = gui
+    
     def step(self):
         """ Step the music player through next beat """
-        print "@@ Music player step"
-
-        # Move playhead one step
-        self.playhead_index = (self.playhead_index + 1) % self.NUM_COLS
-
-        # Play next step for each instrument       
+        # Set GUI to reflect current beat
+        self.gui.update_playhead()
+        
+        # Play step for instruments
         for instrument in self.instruments:
             instrument.play_step()
-        
-        # Determine next beat to play
+
+        # For next iteration, increment playhead and beat indices
+        self.playhead_index = (self.playhead_index + 1) % self.NUM_COLS
         if (self.play_all == True):
             self.beat_index = (self.beat_index + 1) % self.NUM_BEATS
         elif (self.play_all == False):
