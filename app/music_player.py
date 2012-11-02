@@ -92,12 +92,7 @@ class MusicPlayer:
         
     """playback methods"""
     def play(self):
-        print "@@ Music Player play method"
         self.metronome.play()
-
-    def play_all(self):
-        #start metronome
-        pass
 
     def pause(self):
         for instrument in self.instruments:
@@ -108,7 +103,7 @@ class MusicPlayer:
         """used to load a session into the music player"""
         pass
 
-    """generic track modification functions"""
+    """ Modifiers """
     def set_note(self, note):
         instrument = self.instruments[note.track_id]
         instrument.set_note(note)
@@ -117,27 +112,17 @@ class MusicPlayer:
         self.global_volume = volume
         self.master_out.setAmp(0, 0, volume)
 
-    """GUI-called track modification functions"""
-    def gui_set_volume(self, track_id, volume):
-        pass
+    def set_volume(self, track_id, volume):
+        self.instruments[track_id].set_volume(volume)
+        self.track_mixer.setAmp(track_id, 0, volume)
     
+    def set_reverb(self, track_id, reverb):
+        self.instruments[track_id].set_reverb(reverb)
 
-    def gui_set_tempo(self, tempo):
-        #self.playhead_metronome.setTime(SECONDS_PER_MIN/tempo)
-        #self.tempo = tempo
-        pass
-
-    def gui_set_reverb(self, track_id, reverb):
-        pass
-
-    """network-called track modification functions"""
-    def network_set_tempo(self, tempo):
-        #self.playhead_metronome.setTime(SECONDS_PER_MIN/tempo)
-        #self.tempo = tempo
-        pass
-
-    def network_set_reverb(self, track_id, reverb):
-        pass
+    def set_tempo(self, new_tempo):
+        new_time = self.SECONDS_PER_MIN / new_tempo
+        self.metronome.setTime(new_time)
+        self.tempo = new_tempo
 
     """getter methods"""
     def get_session(self):
@@ -145,18 +130,16 @@ class MusicPlayer:
 
     """getter methods for GUI"""
     def get_reverb(self, track_id):
-        # TODO: return non-dummy value
-        return 0.0
+        return self.instruments[track_id].get_reverb()
 
     def get_volume(self, track_id):
-        # TODO: return non-dummy value
-        return 0.0
+        return self.instruments[track_id].get_volume()
 
     def get_global_volume(self):
-        pass
+        return self.global_volume
 
     def get_tempo(self):
-        pass
+        return self.tempo
 
     def get_note(self, track_id, page_index, position, pitch):
         pass

@@ -313,6 +313,7 @@ class GUI(Widget):
                                      orientation='horizontal',
                                      height=MUSIC_SLIDER_HEIGHT,
                                      width=MUSIC_SLIDER_WIDTH)
+        global_tempo_slider.bind(on_touch_move=self.change_global_tempo)
         global_tempo_slider.center_x = tabs.center_x
         global_tempo_slider.top = global_volume_label.y - TAB_ELEMENT_PADDING
         music_tab_content.add_widget(global_tempo_slider)
@@ -346,6 +347,7 @@ class GUI(Widget):
                                      orientation='horizontal',
                                      height=MUSIC_SLIDER_HEIGHT,
                                      width=MUSIC_SLIDER_WIDTH)
+        track_volume_slider.bind(on_touch_move=self.change_track_volume)
         track_volume_slider.center_x = tabs.center_x
         track_volume_slider.top = track_music_label.y - TAB_ELEMENT_PADDING
         music_tab_content.add_widget(track_volume_slider)
@@ -368,6 +370,7 @@ class GUI(Widget):
                                      orientation='horizontal',
                                      height=MUSIC_SLIDER_HEIGHT,
                                      width=MUSIC_SLIDER_WIDTH)
+        track_reverb_slider.bind(on_touch_move=self.change_track_reverb)
         track_reverb_slider.center_x = tabs.center_x
         track_reverb_slider.top = track_volume_label.y - TAB_ELEMENT_PADDING
         music_tab_content.add_widget(track_reverb_slider)
@@ -670,8 +673,14 @@ class GUI(Widget):
     def change_global_volume(self, slider, value):
         self.music_player.set_global_volume(slider.value)
 
+    def change_global_tempo(self, slider, value):
+        self.music_player.set_tempo(slider.value)
+
     def change_track_volume(self, slider, value):
-        pass
+        self.music_player.set_volume(self.track_id, slider.value)
+
+    def change_track_reverb(self, slider, value):
+        self.music_player.set_reverb(self.track_id, slider.value)
 
     def select_page(self, button):
         # On press: deselect all other selected pages so only on is selected
@@ -683,28 +692,31 @@ class GUI(Widget):
                     page_button = self.page_buttons[page_index]
                     page_button.state = 'normal'
             self.music_player.page_index = page_select_index
+            self.reload_notes()
         # If user tries to de-select current page, don't let them!
         elif button.state == 'normal':
             button.state = 'down'
-        
-        self.reload_notes()
 
     def select_track(self, button):
-        # On press, deselect other tracks
+        # On press...
         if button.state == 'down':
             button_id = button.id
             track_select_index = int(button_id.replace('track', ''))
+            # Deselect other tracks
             for track_index in range(0, len(self.track_buttons)):
                 if track_index != track_select_index:
                     track_button = self.track_buttons[track_index]
                     track_button.state = 'normal'
+            # Update GUI to reflect new track
             self.track_id = track_select_index
-        # On de-selection, keep the button pressed -- we need to have track
-        # selected
+            self.reload_notes()
+            track_volume = self.music_player.get_volume(track_select_index)
+            track_reverb = self.music_player.get_reverb(track_select_index)
+            self.track_volume_slider.value = track_volume
+            self.track_reverb_slider.value = track_reverb
+        # On deselection, keep the button pressed
         elif button.state == 'normal':
             button.state = 'down'
-
-        self.reload_notes()
 
     def reload_notes(self):
         # Reset button appearance to match which notes on page are selected

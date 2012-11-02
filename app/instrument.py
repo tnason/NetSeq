@@ -14,12 +14,16 @@ class Instrument:
         """
 
         self.music_player = music_player
-        self.volume = .75
-        self.reverb_mix = 0.0
+        self.reverb_mix = 0.1
         self.notes = []
+
+        # This field is just for storage. Volume is taken care of in
+        # the MusicPlayer's mixer
+        self.volume = .75
 
         # For generating sound
         self.row_generators = []
+        self.reverb = None
         self.mixer = Mixer(outs=1)
         
         # Initialize notes array to all zeroes
@@ -34,9 +38,6 @@ class Instrument:
 
     def get_generator(self):
         return self.generator
-
-    def set_playhead(self):
-        pass
 
     def pause(self):
         self.mixer.stop()
@@ -55,17 +56,18 @@ class Instrument:
             print "@@ Turn off"
             beat_col[note.row] = 0
 
-    def set_volume(self, volume):
-        pass
-        
-    def set_reverb(self, reverb):
-        pass
-
     def get_volume(self):
-        pass
+        return self.volume
+
+    def set_volume(self, new_volume):
+        self.volume = new_volume
 
     def get_reverb(self):
         return self.reverb_mix
+    
+    def set_reverb(self, new_reverb):
+        self.reverb_mix = new_reverb    
+        self.reverb.setBal(new_reverb)
 
     def get_page(self, page_index):
         """ Get a page of notes with <row, col> indexing """
@@ -123,12 +125,12 @@ class DrumInstrument(Instrument):
             self.mixer.setAmp(row_index, 0, 1)
 
         # Apply reverb to omixer
-        reverb = WGVerb(self.mixer[0], feedback=0.8, cutoff=3500, 
+        self.reverb = WGVerb(self.mixer[0], feedback=0.8, cutoff=3500, 
                         bal=self.reverb_mix)
         
         #use generator.setBal(x) to modify reverb
         # self.generator = reverb
-        self.generator = self.mixer[0]
+        self.generator = self.reverb
 
     def __del__(self):
         pass
@@ -187,11 +189,11 @@ class WaveInstrument(Instrument):
             self.mixer.setAmp(i, 0, 1)
         
         # Apply reverb to omixer
-        reverb = WGVerb(self.mixer[0], feedback=0.8, cutoff=3500, 
+        self.reverb = WGVerb(self.mixer[0], feedback=0.8, cutoff=3500, 
                         bal=self.reverb_mix)
         
         #use generator.setBal(x) to modify reverb
-        self.generator = reverb
+        self.generator = self.reverb
 
     def __del__(self):
         pass
