@@ -14,6 +14,9 @@ from kivy.uix.textinput import TextInput
 from kivy.graphics.instructions import Canvas
 from kivy.graphics import Rectangle
 from kivy.graphics import Color
+# TODO: clean this up to what we really need
+import Tkinter
+import tkFileDialog
 
 class GUI(Widget):
     """Widget for all user interaction with sequencer"""
@@ -604,7 +607,10 @@ class GUI(Widget):
         volume -- new volume for the track
 
         """
-        pass
+        # Only visually change the volume slider if the current track is the
+        # same as that for which volume has changed
+        if track_index == self.track_id:
+            self.track_volume_slider.value = volume
 
     def set_reverb(self, track_index, reverb):
         """Redraw rever slider for a track at new value
@@ -614,7 +620,10 @@ class GUI(Widget):
         reverb -- new value for reverb
 
         """
-        pass
+        # Only visually change the reverb slider if the current track is the
+        # same as that for which reverb has changed
+        if track_index == self.track_id:
+            self.track_reverb_slider.value = reverb
 
     def set_tempo(self, tempo):
         """Redraw global tempo at new value
@@ -623,7 +632,7 @@ class GUI(Widget):
         tempo -- new value for tempo
 
         """
-        pass
+        self.global_tempo_slider.value = tempo
 
     def new_session(self):
         """Redraw entirety of UI in response to session load"""
@@ -707,18 +716,22 @@ class GUI(Widget):
         self.music_player.set_note(trigger_data)
         self.network_handler.send_note(trigger_data)
     
-    """ Functions for GUI to change fields within the MusicPlayer """
+    """ Functions for GUI to change fields within the MusicPlayer and those
+        of other clients through network """
     def change_global_volume(self, slider, value):
         self.music_player.set_global_volume(slider.value)
 
     def change_global_tempo(self, slider, value):
         self.music_player.set_tempo(slider.value)
+        self.network_handler.send_tempo(slider.value)
 
     def change_track_volume(self, slider, value):
         self.music_player.set_volume(self.track_id, slider.value)
+        self.network_handler.send_volume(slider.value, self.track_id)
 
     def change_track_reverb(self, slider, value):
         self.music_player.set_reverb(self.track_id, slider.value)
+        self.network_handler.send_reverb(slider.value, self.track_id)
 
     def select_page(self, button):
         # On press: deselect all other selected pages so only on is selected

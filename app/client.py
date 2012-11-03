@@ -50,37 +50,24 @@ class Client(ConnectionListener):
 
     def Network_set_volume(self, data):
         """callback for network triggered volume change"""
-        #data['volume_data'] = volume
-        #data['track_id'] = track_id
-        #TODO: Remove these DEBUG print statements
-        print "volume: " + str(data['volume_data'])
-        print "track id: " + str(data['track_id'])
-        
-        self.music_player.network_set_volume(data['track_id'], data['volume_data'])
+        self.music_player.set_volume(data['track_id'], data['volume_data'])
         self.gui.set_volume(data['track_id'], data['volume_data'])
         pass
 
     def Network_set_tempo(self, data):
         """callback for network triggered tempo change"""
-        #data['tempo_data'] = tempo
-        
-        self.music_player.network_set_tempo(data['tempo_data'])
+        self.music_player.set_tempo(data['tempo_data'])
         self.gui.set_tempo(data['tempo_data'])
         pass
 
     def Network_set_reverb(self, data):
         """callback for network triggered reverb change"""
-        #data['reverb_data'] = reverb
-        #data['track_id'] = track_id
-
-        self.music_player.network_set_reverb(data['track_id'], data['reverb_data'])
+        self.music_player.set_reverb(data['track_id'], data['reverb_data'])
         self.gui.set_reverb(data['track_id'], data['reverb_data'])
         pass
 
     def Network_set_session(self, data):
         """callback for network triggered session load"""
-        #data['session_data'] = session
-        
         self.music_player.set_session(data['session_data'])
         self.gui.new_session()
         pass
