@@ -1,5 +1,4 @@
-from instrument import WaveInstrument
-from instrument import DrumInstrument
+from instrument import *
 from pyo import *
 
 class MusicPlayer:
@@ -55,6 +54,9 @@ class MusicPlayer:
         self.instruments.append(wavetable_b)
         self.instruments.append(drums)
 
+        self.mixer_setup()
+    
+    def mixer_setup(self):
         # Combine all tracks in mixer
         self.track_mixer = Mixer(outs=1)
         for inst_index in range(0, len(self.instruments)):
@@ -110,7 +112,32 @@ class MusicPlayer:
 
     def set_session(self, session):
         """used to load a session into the music player"""
-        pass
+        # Reload pertinent MusicPlayer variables
+        self.set_tempo(session.tempo)
+
+        # Reconstruct each instrument from session data
+        self.instruments = []
+        instrument_data = session.instrument_data
+        for data in instrument_data:
+            print "@@ Processing data"
+            print "@@ Data type: ", type(data)
+            volume = data.volume
+            reverb_mix = data.reverb_mix
+            notes = data.notes
+            if isinstance(data, WaveInstrumentData):
+                wavetype = data.wavetype
+                wave_instrument = WaveInstrument(self, wavetype, volume, 
+                                                 reverb_mix, notes)
+                self.instruments.append(wave_instrument)
+                print "@@ Wave Instrument appended"
+            elif isinstance(data, DrumInstrumentData):
+                drum_instrument = DrumInstrument(self, volume, reverb_mix,
+                                                 notes)
+                self.instruments.append(drum_instrument)
+                print "@@ Drum instrument appended"
+
+        # Reload mixer to reflect new instruments
+        self.mixer_setup()
 
     """ Modifiers """
     def set_note(self, note):
@@ -135,7 +162,9 @@ class MusicPlayer:
 
     """getter methods"""
     def get_session(self):
-        pass
+        """Get descriptive MusicPlayer session to restore later"""
+        session = Session(self, self.instruments)
+        return session
 
     """getter methods for GUI"""
     def get_reverb(self, track_id):
@@ -168,3 +197,15 @@ class Note:
         self.column = column
         self.row = row
         self.turn_on = turn_on
+
+class Session:
+    """Data for saving and loading a composing session"""
+
+    def __init__(self, music_player, instruments):
+        """Construct MusicPlayer session for memory"""
+        self.tempo = music_player.get_tempo()
+        self.instrument_data = []
+        for instrument in instruments:
+            instrument_data = instrument.get_data()
+            self.instrument_data.append(instrument_data)
+

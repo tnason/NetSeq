@@ -2,9 +2,10 @@
 import sys
 from time import sleep
 from weakref import WeakKeyDictionary
-
+from music_player import MusicPlayer
 from PodSixNet.Server import Server
 from PodSixNet.Channel import Channel
+import cPickle
 
 
 class ClientChannel(Channel):
@@ -48,13 +49,17 @@ class ClientChannel(Channel):
 class ServerObj(Server):
         channelClass = ClientChannel
 
-        def __init__(self, *args, **kwargs):
+        def __init__(self, music_player, *args, **kwargs):
             Server.__init__(self, *args, **kwargs)
             self.clients = WeakKeyDictionary() #Store weak references to clients
+            self.music_player = music_player
             print 'Server launched'
 
         def Connected(self, channel, addr):
             self.AddClient(channel)
+            """New client gets server's music player session"""
+            session_data = cPickle.dumps(self.music_player.get_session())
+            channel.Send({"action": "set_session", "session_data": session_data})
 
         def AddClient(self, client):
             print "New client at " + str(client.addr)

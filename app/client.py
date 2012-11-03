@@ -68,9 +68,9 @@ class Client(ConnectionListener):
 
     def Network_set_session(self, data):
         """callback for network triggered session load"""
-        self.music_player.set_session(data['session_data'])
+        session_data = cPickle.loads(data['session_data'])
+        self.music_player.set_session(session_data)
         self.gui.new_session()
-        pass
 
     #built in Network events
     def Network_connected(self, data):

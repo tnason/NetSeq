@@ -43,7 +43,8 @@ class NetworkHandler():
         
     def start_server(self, server_ip, server_port):
         """server_ip sent as a string, server_port as an int"""
-        self.server = ServerObj(localaddr=(server_ip, server_port))
+        self.server = ServerObj(self.music_player, localaddr=(server_ip, 
+                                                              server_port))
         #TODO: Check to make sure server was made successfully?
         self.server_thread = NetworkThread("server", self.server)
         self.server_thread.start()
@@ -98,7 +99,6 @@ class NetworkHandler():
         """send session wrapper method"""
         if self.connected != NOT_CONNECTED:
             self.client.send_session(session)
-
 
 
 #network testing code

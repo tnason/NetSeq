@@ -636,7 +636,8 @@ class GUI(Widget):
 
     def new_session(self):
         """Redraw entirety of UI in response to session load"""
-        pass
+        self.reload_notes()
+        self.reload_sliders()
 
     def update_playhead(self):
         """Move playhead to new column
@@ -762,10 +763,7 @@ class GUI(Widget):
             # Update GUI to reflect new track
             self.track_id = track_select_index
             self.reload_notes()
-            track_volume = self.music_player.get_volume(track_select_index)
-            track_reverb = self.music_player.get_reverb(track_select_index)
-            self.track_volume_slider.value = track_volume
-            self.track_reverb_slider.value = track_reverb
+            self.reload_sliders()
         # On deselection, keep the button pressed
         elif button.state == 'normal':
             button.state = 'down'
@@ -780,6 +778,14 @@ class GUI(Widget):
                     self.note_buttons[row_index][col_index].state = 'normal'
                 elif note_value == 1:
                     self.note_buttons[row_index][col_index].state = 'down'
+
+    def reload_sliders(self):
+        track_volume = self.music_player.get_volume(self.track_id)
+        track_reverb = self.music_player.get_reverb(self.track_id)
+        tempo = self.music_player.get_tempo()
+        self.track_volume_slider.value = track_volume
+        self.track_reverb_slider.value = track_reverb
+        self.global_tempo_slider.value = tempo
 
     def play_pause(self, button):
         if button.state == 'down':

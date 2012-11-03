@@ -6,7 +6,7 @@ class Instrument:
 
     SECONDS_PER_MIN = 60
 
-    def __init__(self, music_player):
+    def __init__(self, music_player, volume, reverb_mix, notes):
         """ Create generic Instrument
 
         Arguments:
@@ -14,24 +14,27 @@ class Instrument:
         """
 
         self.music_player = music_player
-        self.reverb_mix = 0.1
-        self.notes = []
+        self.reverb_mix = reverb_mix
 
         # This field is just for storage. Volume is taken care of in
         # the MusicPlayer's mixer
-        self.volume = .75
+        self.volume = volume
+
+        # Initialize notes array to all zeroes if no notes input as argument
+        if notes == None:
+            self.notes = []
+            for beat_index in range(0, music_player.NUM_BEATS):
+                beat_column = []
+                for row_index in range(0, music_player.NUM_ROWS):
+                    beat_column.append(0)
+                self.notes.append(beat_column)
+        else:
+            self.notes = notes
 
         # For generating sound
         self.row_generators = []
-        self.reverb = None
+        self.reverb_out = None
         self.mixer = Mixer(outs=1)
-        
-        # Initialize notes array to all zeroes
-        for beat_index in range(0, music_player.NUM_BEATS):
-            beat_column = []
-            for row_index in range(0, music_player.NUM_ROWS):
-                beat_column.append(0)
-            self.notes.append(beat_column)
 
     def __del__(self):
         pass
@@ -67,7 +70,7 @@ class Instrument:
     
     def set_reverb(self, new_reverb):
         self.reverb_mix = new_reverb    
-        self.reverb.setBal(new_reverb)
+        self.reverb_out.setBal(new_reverb)
 
     def get_page(self, page_index):
         """ Get a page of notes with <row, col> indexing """
@@ -83,6 +86,13 @@ class Instrument:
         
         return page_notes
 
+    """Abstract methods: override these for your instrument"""
+    def play_step(self):
+        pass
+
+    def get_data(self):
+        pass
+
 
 class DrumInstrument(Instrument):
     """This provides functionality for a drum sample instrument"""
@@ -93,7 +103,7 @@ class DrumInstrument(Instrument):
                "small_tom_40-50_2.ogg", "sidestick24.ogg", "hohh_15.ogg", 
                "chh37.ogg", "snaretop_37.ogg", "kick_22.ogg"]
 
-    def __init__(self, music_player):
+    def __init__(self, music_player, volume=.75, reverb_mix=.1, notes=None):
         """ Create new DrumInstrument 
 
         Arguments:
@@ -102,7 +112,7 @@ class DrumInstrument(Instrument):
         """
        
         # Default instrument constructor
-        Instrument.__init__(self, music_player)
+        Instrument.__init__(self, music_player, volume, reverb_mix, notes)
 
         # TODO: make this absolute and across files
         SOUND_PATH = "../assets/sounds/osdrumkit/"
@@ -125,12 +135,12 @@ class DrumInstrument(Instrument):
             self.mixer.setAmp(row_index, 0, 1)
 
         # Apply reverb to omixer
-        self.reverb = WGVerb(self.mixer[0], feedback=0.8, cutoff=3500, 
-                        bal=self.reverb_mix)
+        self.reverb_out = WGVerb(self.mixer[0], feedback=0.8, cutoff=3500, 
+                                 bal=self.reverb_mix)
         
         #use generator.setBal(x) to modify reverb
         # self.generator = reverb
-        self.generator = self.reverb
+        self.generator = self.reverb_out
 
     def __del__(self):
         pass
@@ -151,16 +161,23 @@ class DrumInstrument(Instrument):
                 generator.reset()
                 generator.play()
 
+    def get_data(self):
+        """Get data for storing and loading this instrument"""
+        data = DrumInstrumentData(self.volume, self.reverb_mix, self.notes)
+        return data;
+
 
 class WaveInstrument(Instrument):
     """This provides functionality for a wave instrument"""
 
     # Frequencis of major scale C4 to C5
-    C_FREQUENCIES = [523.25, 493.88, 440.00, 392.00, 349.23, 329.63, 293.66, 261.63]
+    C_FREQUENCIES = [523.25, 493.88, 440.00, 392.00, 349.23, 329.63, 293.66, 
+                     261.63]
     BASS = 0
     LEAD = 1
     
-    def __init__(self, music_player, wavetype=LEAD):
+    def __init__(self, music_player, wavetype=LEAD, volume=.75, reverb_mix=.1, 
+                 notes=None):
         """ Create new WaveInstrument
 
         Arguments
@@ -168,12 +185,13 @@ class WaveInstrument(Instrument):
         
         """
 
-        Instrument.__init__(self, music_player)
+        Instrument.__init__(self, music_player, volume, reverb_mix, notes)
 
-        if (wavetype == self.BASS):
+        self.wavetype = wavetype
+        if (self.wavetype == self.BASS):
             table = SquareTable()
             self.frequencies = [(freq / 4) for freq in self.C_FREQUENCIES]
-        elif (wavetype == self.LEAD):
+        elif (self.wavetype == self.LEAD):
             table = CosTable()
             self.frequencies = self.C_FREQUENCIES
 
@@ -189,11 +207,11 @@ class WaveInstrument(Instrument):
             self.mixer.setAmp(i, 0, 1)
         
         # Apply reverb to omixer
-        self.reverb = WGVerb(self.mixer[0], feedback=0.8, cutoff=3500, 
-                        bal=self.reverb_mix)
+        self.reverb_out = WGVerb(self.mixer[0], feedback=0.8, cutoff=3500, 
+                                 bal=self.reverb_mix)
         
         #use generator.setBal(x) to modify reverb
-        self.generator = self.reverb
+        self.generator = self.reverb_out
 
     def __del__(self):
         pass
@@ -210,6 +228,40 @@ class WaveInstrument(Instrument):
                 self.row_generators[row_index].play()
             elif beat_col[row_index] == 0:
                 self.row_generators[row_index].stop()
+    
+    def get_data(self):
+        """Get data for storing and loading this instrument"""
+        data = WaveInstrumentData(self.volume, self.reverb_mix, self.notes,
+                                  self.wavetype)
+        return data;
+
+
+class InstrumentData:
+    """Holds generic instrument data for loading and storing"""
+
+    def __init__(self, volume, reverb_mix, notes):
+        """Construct generic Instrument Data"""
+        self.volume = volume
+        self.reverb_mix = reverb_mix
+        self.notes = notes
+
+
+class WaveInstrumentData(InstrumentData):
+    """Holds data for reconstructing WaveInstrument"""
+    
+    def __init__(self, volume, reverb_mix, notes, wavetype):
+        """Construct WaveInstrumentData"""
+        InstrumentData.__init__(self, volume, reverb_mix, notes)
+        self.wavetype = wavetype
+
+
+class DrumInstrumentData(InstrumentData):
+    """Holds data for reconstructing DrumInstrument"""
+
+    def __init__(self, volume, reverb_mix, notes):
+        """Construct DrumInstrumentData"""
+        InstrumentData.__init__(self, volume, reverb_mix, notes)
+
 
 if __name__ == "__main__":
     instrument = Instrument()
