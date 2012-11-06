@@ -1,4 +1,3 @@
-import music_player
 from pyo import Mixer, SndTable, TableRead, WGVerb, SquareTable, CosTable, Osc
 
 class Instrument:
@@ -110,7 +109,7 @@ class DrumInstrument(Instrument):
         Instrument.__init__(self, music_player, volume, reverb_mix, notes)
 
         # TODO: make this absolute and across files
-        SOUND_PATH = "../assets/sounds/osdrumkit/"
+        SOUND_PATH = "assets/sounds/osdrumkit/"
 
         self.generator = None
         self.sample_tables = []

@@ -14,6 +14,7 @@ from kivy.uix.textinput import TextInput
 from kivy.graphics.instructions import Canvas
 from kivy.graphics import Rectangle
 from kivy.graphics import Color
+from ns_widgets import NSToggleButton
 import Tkinter
 import tkFileDialog
 import cPickle
@@ -108,7 +109,7 @@ class GUI(Widget):
             # Create all buttons for row
             row_notes = []
             for col in range(0, NOTE_BUTTON_COLS):
-                col_button = ToggleButton(width=NOTE_BUTTON_WIDTH,
+                col_button = NSToggleButton(width=NOTE_BUTTON_WIDTH,
                                           height=NOTE_BUTTON_HEIGHT)
                 col_button.id = 'row' + str(row) + ',col' + str(col)
                 col_button.x = col_x
@@ -172,16 +173,16 @@ class GUI(Widget):
                              height=PLAY_BUTTON_HEIGHT)
         play_button.bind(on_press=self.play_pause)
         play_button.background_normal = \
-            "../assets/icons/media-playback-start-4.png"
+            "assets/icons/media-playback-start-4.png"
         play_button.background_down = \
-            "../assets/icons/media-playback-pause-4.png"
+            "assets/icons/media-playback-pause-4.png"
         play_button.x = PLAY_BUTTON_X
         play_button.center_y = PLAYBACK_CENTER_Y
         self.play_button = play_button
         self.add_widget(play_button)
 
         # Buttons to play one page or all
-        one_page_button = ToggleButton(width=PLAYALL_BUTTON_WIDTH,
+        one_page_button = NSToggleButton(width=PLAYALL_BUTTON_WIDTH,
                                        height=PLAYALL_BUTTON_HEIGHT,
                                        text='One page',
                                        text_size=PLAYALL_BUTTON_TEXT_SIZE,
@@ -193,7 +194,7 @@ class GUI(Widget):
         self.one_page_button = one_page_button
         self.add_widget(one_page_button)
 
-        all_pages_button = ToggleButton(width=PLAYALL_BUTTON_WIDTH,
+        all_pages_button = NSToggleButton(width=PLAYALL_BUTTON_WIDTH,
                                         height=PLAYALL_BUTTON_HEIGHT,
                                         text='All pages', 
                                         text_size=PLAYALL_BUTTON_TEXT_SIZE,
@@ -226,7 +227,7 @@ class GUI(Widget):
         self.add_widget(page_label)
         for page_index in range(0, NUM_PAGE_BUTTONS):
             page_id = 'page' + str(page_index)
-            page_button = ToggleButton(width=PAGE_BUTTON_WIDTH,
+            page_button = NSToggleButton(width=PAGE_BUTTON_WIDTH,
                                        height=PAGE_BUTTON_HEIGHT, id=page_id)
             page_button.bind(on_press=self.select_page)
             page_button.x = page_button_x
@@ -246,9 +247,9 @@ class GUI(Widget):
         TRACK_BUTTON_FONT_SIZE = 10
         TRACK_BUTTON_TEXT_SIZE = [TRACK_BUTTON_WIDTH, TRACK_BUTTON_HEIGHT]
 
-        track_icons = [ "../assets/icons/piano.png",
-                        "../assets/icons/piano.png",
-                        "../assets/icons/media_drum_kit.png" ]
+        track_icons = [ "assets/icons/piano.png",
+                        "assets/icons/piano.png",
+                        "assets/icons/media_drum_kit.png" ]
         track_text = ["Bass", "Lead", "Drum"]
         track_buttons = []
         self.track_buttons = []
@@ -256,7 +257,7 @@ class GUI(Widget):
                          PLAYBACK_PADDING
         for track_index in range(0, NUM_TRACK_BUTTONS):
             track_id = 'track' + str(track_index)
-            track_button = ToggleButton(text=track_text[track_index],
+            track_button = NSToggleButton(text=track_text[track_index],
                                         width=TRACK_BUTTON_WIDTH, 
                                         height=TRACK_BUTTON_HEIGHT, id=track_id,
                                         text_size=TRACK_BUTTON_TEXT_SIZE,
@@ -264,7 +265,7 @@ class GUI(Widget):
                                         halign='center', valign='middle')
             # track_button.background_normal = track_icons[track_index]
             # track_button.background_down = track_icons[track_index]
-            track_button.background_color = (.9, .7, .2, 1)
+            track_button.background_color = (.7, .4, .9, 1)
             track_button.bind(on_press=self.select_track)
             track_button.x = track_button_x
             track_button.center_y = PLAYBACK_CENTER_Y
@@ -331,9 +332,9 @@ class GUI(Widget):
         tabs.default_tab_content = music_tab_content
         tabs.default_tab.text = ""
         tabs.default_tab.background_normal = \
-            "../assets/icons/audio-keyboard.png"
+            "assets/icons/audio-keyboard.png"
         tabs.default_tab.background_down = \
-            "../assets/icons/audio-keyboard.png"
+            "assets/icons/audio-keyboard.png"
 
         # Global music options
         global_music_label = Label(text='Global', 
@@ -456,9 +457,9 @@ class GUI(Widget):
         network_tab = TabbedPanelHeader()
         network_tab.text = ""
         network_tab.background_normal = \
-            "../assets/icons/network-wired.png"
+            "assets/icons/network-wired.png"
         network_tab.background_down = \
-            "../assets/icons/network-wired.png"
+            "assets/icons/network-wired.png"
         tabs.add_widget(network_tab)
         
         TEXT_INPUT_HEIGHT = 30
@@ -543,9 +544,9 @@ class GUI(Widget):
         # System options tab
         system_tab = TabbedPanelHeader()
         system_tab.background_normal = \
-            "../assets/icons/computer-4.png"
+            "assets/icons/computer-4.png"
         system_tab.background_down = \
-            "../assets/icons/computer-4.png"
+            "assets/icons/computer-4.png"
         tabs.add_widget(system_tab)
 
         system_tab_content = Widget(width=TABS_WIDTH, height=TAB_CONTENT_HEIGHT)
