@@ -14,9 +14,9 @@ from kivy.uix.textinput import TextInput
 from kivy.graphics.instructions import Canvas
 from kivy.graphics import Rectangle
 from kivy.graphics import Color
-# TODO: clean this up to what we really need
 import Tkinter
 import tkFileDialog
+import cPickle
 
 class GUI(Widget):
     """Widget for all user interaction with sequencer"""
@@ -30,6 +30,10 @@ class GUI(Widget):
 
         """
 
+        # Initialize Tkinter, and instruct it hide root window
+        root = Tkinter.Tk()
+        root.withdraw()
+
         # Perform widget initializations
         super(GUI, self).__init__()
 
@@ -42,6 +46,8 @@ class GUI(Widget):
         # initial state to the GUI
         self.music_player = music_player
         self.track_id = MusicPlayer.WAVETABLE_A
+
+        self.track_colors = [[.6, .3, .9, 1], [], []]
 
         # BUTTON GRID
         NOTE_BUTTON_WIDTH = 48
@@ -137,17 +143,22 @@ class GUI(Widget):
         PLAYALL_BUTTON_FONT_SIZE = 8
         PLAYALL_BUTTON_TEXT_SIZE = [PLAYALL_BUTTON_WIDTH, 
                                     PLAYALL_BUTTON_HEIGHT]
-        PAGE_BUTTON_WIDTH = 25
+        PAGE_BUTTON_WIDTH = 20
         PAGE_BUTTON_HEIGHT = 30
         NUM_PAGE_BUTTONS = MusicPlayer.NUM_PAGES
         PAGE_LABEL_WIDTH = (PAGE_BUTTON_WIDTH * NUM_PAGE_BUTTONS)
         PAGE_LABEL_HEIGHT = 20
         PAGE_LABEL_FONT_SIZE = 10
         PAGE_LABEL_OFFSET = 5
-        TRACK_BUTTON_WIDTH = 30
-        TRACK_BUTTON_HEIGHT = 40
+        TRACK_BUTTON_WIDTH = 48
+        TRACK_BUTTON_HEIGHT = 48
         NUM_TRACK_BUTTONS = MusicPlayer.NUM_TRACKS
         NUM_PLAYBACK_ELEMENTS = 4
+        TRACK_LABEL_WIDTH = TRACK_BUTTON_WIDTH * NUM_TRACK_BUTTONS
+        TRACK_LABEL_HEIGHT = PAGE_LABEL_HEIGHT
+        TRACK_LABEL_FONT_SIZE = PAGE_LABEL_FONT_SIZE
+        TRACK_LABEL_TEXT_SIZE = [TRACK_LABEL_WIDTH, TRACK_LABEL_HEIGHT]
+        TRACK_LABEL_OFFSET = PAGE_LABEL_OFFSET
 
         PLAYBACK_PADDING = (PLAYBACK_WIDTH - (PAGE_BUTTON_WIDTH * 
                             NUM_PAGE_BUTTONS) - (PLAY_BUTTON_WIDTH) - 
@@ -231,14 +242,29 @@ class GUI(Widget):
 
         # Track selection buttons
         # TODO: color these! And pages, too!
+
+        TRACK_BUTTON_FONT_SIZE = 10
+        TRACK_BUTTON_TEXT_SIZE = [TRACK_BUTTON_WIDTH, TRACK_BUTTON_HEIGHT]
+
+        track_icons = [ "../assets/icons/piano.png",
+                        "../assets/icons/piano.png",
+                        "../assets/icons/media_drum_kit.png" ]
+        track_text = ["Bass", "Lead", "Drum"]
         track_buttons = []
         self.track_buttons = []
         track_button_x = page_buttons[len(page_buttons) - 1].right + \
                          PLAYBACK_PADDING
         for track_index in range(0, NUM_TRACK_BUTTONS):
             track_id = 'track' + str(track_index)
-            track_button = ToggleButton(width=TRACK_BUTTON_WIDTH, 
-                                        height=TRACK_BUTTON_HEIGHT, id=track_id)
+            track_button = ToggleButton(text=track_text[track_index],
+                                        width=TRACK_BUTTON_WIDTH, 
+                                        height=TRACK_BUTTON_HEIGHT, id=track_id,
+                                        text_size=TRACK_BUTTON_TEXT_SIZE,
+                                        font_size=TRACK_BUTTON_FONT_SIZE,
+                                        halign='center', valign='middle')
+            # track_button.background_normal = track_icons[track_index]
+            # track_button.background_down = track_icons[track_index]
+            track_button.background_color = (.9, .7, .2, 1)
             track_button.bind(on_press=self.select_track)
             track_button.x = track_button_x
             track_button.center_y = PLAYBACK_CENTER_Y
@@ -250,6 +276,18 @@ class GUI(Widget):
     
         # Select the current track in the GUI
         track_buttons[self.track_id].state = 'down'
+
+        leftmost_track_button = self.track_buttons[0]
+
+        track_label = Label(text='Instrument Select', 
+                           text_size=TRACK_LABEL_TEXT_SIZE,
+                           font_size=TRACK_LABEL_FONT_SIZE,
+                           width=TRACK_LABEL_WIDTH, 
+                           height=TRACK_LABEL_HEIGHT,
+                           halign='center', valign='middle')
+        track_label.x = leftmost_track_button.x
+        track_label.top = leftmost_track_button.y - TRACK_LABEL_OFFSET
+        # self.add_widget(track_label)
 
         # SETTINGS TABS
         TABS_X = OUTER_PADDING + GRID_WIDTH + OUTER_PADDING
@@ -358,7 +396,7 @@ class GUI(Widget):
         music_tab_content.add_widget(global_tempo_label)
 
         # Instrument settings
-        track_music_label = Label(text='Track', 
+        track_music_label = Label(text='Instrument', 
                                   font_size=SECTION_LABEL_FONT_SIZE,
                                   width=SECTION_LABEL_WIDTH, 
                                   height=SECTION_LABEL_HEIGHT,
@@ -527,6 +565,7 @@ class GUI(Widget):
                              text_size=SYSTEM_BUTTON_TEXT_SIZE,
                              font_size=SYSTEM_BUTTON_FONT_SIZE,
                              halign='center', valign='middle')
+        load_button.bind(on_press=self.load_file)
         load_button.center_x = tabs.center_x
         load_button.top = TAB_CONTENT_TOP - SYSTEM_BUTTON_PADDING
         system_tab_content.add_widget(load_button)        
@@ -537,6 +576,7 @@ class GUI(Widget):
                              text_size=SYSTEM_BUTTON_TEXT_SIZE,
                              font_size=SYSTEM_BUTTON_FONT_SIZE,
                              halign='center', valign='middle')
+        save_button.bind(on_press=self.save_file)
         save_button.center_x = tabs.center_x
         save_button.top = load_button.y - SYSTEM_BUTTON_PADDING
         system_tab_content.add_widget(save_button)        
@@ -694,6 +734,40 @@ class GUI(Widget):
     def end_connection(self, button):
         self.network_handler.terminate_connections()
             
+    """System functions"""
+    def load_file(self, button):
+        load_types = [ ('NetSeq files', '*.ns')]
+        filename = tkFileDialog.askopenfilename(defaultextension='.ns', 
+                                                title='Load Session',
+                                                filetypes=load_types)
+
+        if filename != '':
+            try:
+                file = open(filename, 'r')
+                file_valid = True
+            except IOError:
+                print "Invalid filename!"
+                file_valid = False
+        else:
+            file_valid = False        
+
+        if file_valid == True:
+            session = cPickle.load(file)
+            self.music_player.set_session(session)
+            self.new_session()
+
+    def save_file(self, button):
+        filename = tkFileDialog.asksaveasfilename(defaultextension='.ns',
+                                                  initialfile='my_session',
+                                                  title='Save Session')
+        if filename != '':
+            session = self.music_player.get_session()
+            file = open(filename, 'w')
+            cPickle.dump(session, file)
+
+    def exit(self, button):
+        pass
+
     """Music functions"""
     def trigger_note(self, button):
 
@@ -704,12 +778,8 @@ class GUI(Widget):
 
         if button.state == 'down':
             turn_on = True
-            print '@@ Turn on note'
         elif button.state == 'normal':
             turn_on = False
-            print '@@ Turn off note'
-
-        print '@@ Row: ', str(row_index), ', Column: ', str(col_index)
 
         trigger_data = Note(self.track_id, self.music_player.page_index,
                             col_index, row_index, turn_on)
