@@ -1,5 +1,5 @@
 import music_player
-from pyo import *
+from pyo import Mixer, SndTable, TableRead, WGVerb, SquareTable, CosTable, Osc
 
 class Instrument:
     """This class holds the sound generator and playback parameters for a track"""
@@ -49,14 +49,9 @@ class Instrument:
         beat_index = note.page_index * self.music_player.NUM_COLS +\
                      note.column
         beat_col = self.notes[beat_index]
-
-        print "@@ Altering note at beat ", beat_index, ", row ", note.row
-
         if note.turn_on == True:
-            print "@@ Turn on"
             beat_col[note.row] = 1
         elif note.turn_on == False:
-            print "@@ Turn off"
             beat_col[note.row] = 0
 
     def get_volume(self):
@@ -123,11 +118,9 @@ class DrumInstrument(Instrument):
 
         for row_index in range(0, music_player.NUM_ROWS):
             file = SOUND_PATH + self.sample_files[row_index]
-            print "@@ Making SfPlayer for: ", file
             sample_table = SndTable(file)
             self.sample_tables.append(sample_table)
             frequency = sample_table.getRate()
-            # duration = sample_table.getDur()
             generator = TableRead(table=sample_table, freq=frequency)
             generator.stop()
             self.row_generators.append(generator)
@@ -176,7 +169,7 @@ class WaveInstrument(Instrument):
     BASS = 0
     LEAD = 1
     
-    def __init__(self, music_player, wavetype=LEAD, volume=.75, reverb_mix=.1, 
+    def __init__(self, music_player, wavetype=LEAD, volume=.2, reverb_mix=.1, 
                  notes=None):
         """ Create new WaveInstrument
 

@@ -1,5 +1,6 @@
-from instrument import *
-from pyo import *
+from instrument import WaveInstrument, DrumInstrument
+from instrument import WaveInstrumentData, DrumInstrumentData
+from pyo import Mixer, Server, Metro, TrigFunc
 
 class MusicPlayer:
     """Playback engine for sequencer samples and sounds"""
@@ -41,7 +42,6 @@ class MusicPlayer:
         self.server.start()
 
         metronome_time = self.SECONDS_PER_MIN / self.tempo
-        print "@@ metro time: ", metronome_time
         self.metronome = Metro(time=metronome_time)
         self.metronome_callback = TrigFunc(self.metronome, function=self.step)
         
@@ -63,7 +63,7 @@ class MusicPlayer:
             instrument = self.instruments[inst_index]
             generator = instrument.get_generator()
             self.track_mixer.addInput(inst_index, generator)
-            self.track_mixer.setAmp(inst_index, 0, 1)
+            self.track_mixer.setAmp(inst_index, 0, instrument.get_volume())
         
         # Prepare master output
         self.master_out = Mixer(outs=1)
@@ -119,8 +119,6 @@ class MusicPlayer:
         self.instruments = []
         instrument_data = session.instrument_data
         for data in instrument_data:
-            print "@@ Processing data"
-            print "@@ Data type: ", type(data)
             volume = data.volume
             reverb_mix = data.reverb_mix
             notes = data.notes
@@ -129,12 +127,10 @@ class MusicPlayer:
                 wave_instrument = WaveInstrument(self, wavetype, volume, 
                                                  reverb_mix, notes)
                 self.instruments.append(wave_instrument)
-                print "@@ Wave Instrument appended"
             elif isinstance(data, DrumInstrumentData):
                 drum_instrument = DrumInstrument(self, volume, reverb_mix,
                                                  notes)
                 self.instruments.append(drum_instrument)
-                print "@@ Drum instrument appended"
 
         # Reload mixer to reflect new instruments
         self.mixer_setup()
