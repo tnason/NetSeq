@@ -1,4 +1,5 @@
-from pyo import Mixer, SndTable, TableRead, WGVerb, SquareTable, CosTable, Osc
+from pyo import Mixer, SndTable, TableRead, WGVerb, SquareTable, CosTable, \
+                Osc, Disto, Chorus
 
 class Instrument:
     """This class holds the sound generator and playback parameters for a track"""
@@ -96,8 +97,9 @@ class DrumInstrument(Instrument):
     sample_files = ["crashedge5.ogg", "large_tom_40-50_1.ogg", 
                "small_tom_40-50_2.ogg", "sidestick24.ogg", "hohh_15.ogg", 
                "chh37.ogg", "snaretop_37.ogg", "kick_22.ogg"]
+    sample_amps = [0.2, 1.0, 1.0, 0.3, 0.4, 0.4, 0.3, 0.8]
 
-    def __init__(self, music_player, volume=.75, reverb_mix=.1, notes=None):
+    def __init__(self, music_player, volume=4.0, reverb_mix=.1, notes=None):
         """ Create new DrumInstrument 
 
         Arguments:
@@ -124,10 +126,13 @@ class DrumInstrument(Instrument):
             generator.stop()
             self.row_generators.append(generator)
             self.mixer.addInput(row_index, generator)
-            self.mixer.setAmp(row_index, 0, 1)
+            self.mixer.setAmp(row_index, 0, self.sample_amps[row_index])
+
+        pre_effect = self.mixer[0]
+        post_effect = pre_effect
 
         # Apply reverb to omixer
-        self.reverb_out = WGVerb(self.mixer[0], feedback=0.8, cutoff=3500, 
+        self.reverb_out = WGVerb(post_effect, feedback=0.8, cutoff=3500, 
                                  bal=self.reverb_mix)
         
         #use generator.setBal(x) to modify reverb
@@ -197,9 +202,20 @@ class WaveInstrument(Instrument):
             self.row_generators.append(oscillator)
             self.mixer.addInput(i, oscillator)
             self.mixer.setAmp(i, 0, 1)
-        
+     
+        pre_effect = self.mixer[0]
+
+        if (self.wavetype == self.BASS):
+            distorted = Disto(pre_effect)
+            post_effect = distorted
+        elif (self.wavetype == self.LEAD):
+            chorus = Chorus(pre_effect)
+            post_effect = chorus
+        else:
+            post_effect = pre_effect
+   
         # Apply reverb to omixer
-        self.reverb_out = WGVerb(self.mixer[0], feedback=0.8, cutoff=3500, 
+        self.reverb_out = WGVerb(post_effect, feedback=0.8, cutoff=3500, 
                                  bal=self.reverb_mix)
         
         #use generator.setBal(x) to modify reverb
