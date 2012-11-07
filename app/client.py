@@ -35,7 +35,8 @@ class Client(ConnectionListener):
         connection.Send({"action": "send_reverb", "reverb_data": reverb, "track_id": track_id})
 
     def send_session(self, session):
-        connection.Send({"action": "send_session", "session_data": session})
+        session_str = cPickle.dumps(session)
+        connection.Send({"action": "send_session", "session_string": session_str})
 
     #Network events
     def Network_set_note(self, data):

@@ -20,7 +20,7 @@ NETWORK_CLIENT = 1
 NETWORK_SERVER = 2
 
 class NetworkHandler():
-
+    """Primary interface to handle network interaction"""
 
     def __init__(self, music_player, gui):
         """constructor for the network handler"""
