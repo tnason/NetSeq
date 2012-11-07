@@ -9,12 +9,12 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.tabbedpanel import TabbedPanelHeader
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.slider import Slider
 from kivy.uix.textinput import TextInput
 from kivy.graphics.instructions import Canvas
 from kivy.graphics import Rectangle
 from kivy.graphics import Color
 from ns_widgets import NSToggleButton
+from ns_widgets import NSSlider
 import Tkinter
 import tkFileDialog
 import cPickle
@@ -48,7 +48,11 @@ class GUI(Widget):
         self.music_player = music_player
         self.track_id = MusicPlayer.WAVETABLE_A
 
-        self.track_colors = [[.6, .3, .9, 1], [], []]
+        # For dynamic GUI coloring
+        self.TRACK_COLORS = [[.7, .4, .9, 1.0], 
+                             [.6, .9, .4, 1.0], 
+                             [.8, .5, .3, 1.0]]
+        self.colorables = []
 
         # BUTTON GRID
         NOTE_BUTTON_WIDTH = 48
@@ -117,6 +121,7 @@ class GUI(Widget):
                 col_button.bind(on_press=self.trigger_note)
                 row_notes.append(col_button)
                 self.add_widget(col_button)
+                self.colorables.append(col_button)
                 col_x = col_x + NOTE_BUTTON_WIDTH + NOTE_BUTTON_PADDING
                 
             self.note_buttons.append(row_notes)
@@ -180,6 +185,7 @@ class GUI(Widget):
         play_button.center_y = PLAYBACK_CENTER_Y
         self.play_button = play_button
         self.add_widget(play_button)
+        self.colorables.append(play_button)
 
         # Buttons to play one page or all
         one_page_button = NSToggleButton(width=PLAYALL_BUTTON_WIDTH,
@@ -193,6 +199,7 @@ class GUI(Widget):
         one_page_button.top = PLAYBACK_CENTER_Y + PLAYALL_BUTTON_HEIGHT
         self.one_page_button = one_page_button
         self.add_widget(one_page_button)
+        self.colorables.append(one_page_button)
 
         all_pages_button = NSToggleButton(width=PLAYALL_BUTTON_WIDTH,
                                         height=PLAYALL_BUTTON_HEIGHT,
@@ -205,7 +212,8 @@ class GUI(Widget):
         all_pages_button.top = PLAYBACK_CENTER_Y
         self.all_pages_button = all_pages_button
         self.add_widget(all_pages_button)
-
+        self.colorables.append(all_pages_button)
+        
         if music_player.play_all == False:
             one_page_button.state = 'down'
             all_pages_button.state = 'normal'
@@ -234,6 +242,7 @@ class GUI(Widget):
             page_button.center_y = PLAYBACK_CENTER_Y
             page_buttons.append(page_button)
             self.add_widget(page_button)
+            self.colorables.append(page_button)
             page_button_x += PAGE_BUTTON_WIDTH
 
         self.page_buttons = page_buttons
@@ -246,10 +255,7 @@ class GUI(Widget):
 
         TRACK_BUTTON_FONT_SIZE = 10
         TRACK_BUTTON_TEXT_SIZE = [TRACK_BUTTON_WIDTH, TRACK_BUTTON_HEIGHT]
-
-        track_icons = [ "assets/icons/piano.png",
-                        "assets/icons/piano.png",
-                        "assets/icons/media_drum_kit.png" ]
+        
         track_text = ["Bass", "Lead", "Drum"]
         track_buttons = []
         self.track_buttons = []
@@ -263,14 +269,12 @@ class GUI(Widget):
                                         text_size=TRACK_BUTTON_TEXT_SIZE,
                                         font_size=TRACK_BUTTON_FONT_SIZE,
                                         halign='center', valign='middle')
-            # track_button.background_normal = track_icons[track_index]
-            # track_button.background_down = track_icons[track_index]
-            track_button.background_color = (.7, .4, .9, 1)
             track_button.bind(on_press=self.select_track)
             track_button.x = track_button_x
             track_button.center_y = PLAYBACK_CENTER_Y
             track_buttons.append(track_button)
             self.add_widget(track_button)
+            self.colorables.append(track_button)
             track_button_x += TRACK_BUTTON_WIDTH
         
         self.track_buttons = track_buttons        
@@ -327,14 +331,14 @@ class GUI(Widget):
         self.tabs = tabs
 
         # Music tab (default)
-        # TODO: make these paths absolute?
         music_tab_content = Widget(width=TABS_WIDTH, height=TAB_CONTENT_HEIGHT)
         tabs.default_tab_content = music_tab_content
         tabs.default_tab.text = ""
+        # TODO: make these paths absolute?
         tabs.default_tab.background_normal = \
             "assets/icons/audio-keyboard.png"
         tabs.default_tab.background_down = \
-            "assets/icons/audio-keyboard.png"
+            "assets/icons/audio-keyboard-down.png"
 
         # Global music options
         global_music_label = Label(text='Global', 
@@ -352,17 +356,18 @@ class GUI(Widget):
 
         # Note: these sliders buttons have a predefined height, so we are a
         # slave to that height for positioning the sliders
-        global_volume_slider = Slider(min=MusicPlayer.MIN_VOLUME, 
-                                      max=MusicPlayer.MAX_VOLUME,
-                                      value=music_player.global_volume,
-                                      orientation='horizontal',
-                                      height=MUSIC_SLIDER_HEIGHT,
-                                      width=MUSIC_SLIDER_WIDTH)
+        global_volume_slider = NSSlider(min=MusicPlayer.MIN_VOLUME, 
+                                        max=MusicPlayer.MAX_VOLUME,
+                                        value=music_player.global_volume,
+                                        orientation='horizontal',
+                                        height=MUSIC_SLIDER_HEIGHT,
+                                        width=MUSIC_SLIDER_WIDTH)
         global_volume_slider.bind(on_touch_move=self.change_global_volume)
         global_volume_slider.center_x = tabs.center_x
         global_volume_slider.top = global_music_label.y - TAB_ELEMENT_PADDING
         music_tab_content.add_widget(global_volume_slider)
         self.global_volume_slider = global_volume_slider
+        self.colorables.append(global_volume_slider)
 
         global_volume_label = Label(text='Volume',
                                     font_size=ELEMENT_LABEL_FONT_SIZE,
@@ -374,17 +379,18 @@ class GUI(Widget):
         global_volume_label.top = global_volume_slider.y - TAB_ELEMENT_PADDING
         music_tab_content.add_widget(global_volume_label)
         
-        global_tempo_slider = Slider(min=MusicPlayer.MIN_TEMPO, 
-                                     max=MusicPlayer.MAX_TEMPO,
-                                     value=music_player.tempo,
-                                     orientation='horizontal',
-                                     height=MUSIC_SLIDER_HEIGHT,
-                                     width=MUSIC_SLIDER_WIDTH)
+        global_tempo_slider = NSSlider(min=MusicPlayer.MIN_TEMPO, 
+                                       max=MusicPlayer.MAX_TEMPO,
+                                       value=music_player.tempo,
+                                       orientation='horizontal',
+                                       height=MUSIC_SLIDER_HEIGHT,
+                                       width=MUSIC_SLIDER_WIDTH)
         global_tempo_slider.bind(on_touch_move=self.change_global_tempo)
         global_tempo_slider.center_x = tabs.center_x
         global_tempo_slider.top = global_volume_label.y - TAB_ELEMENT_PADDING
         music_tab_content.add_widget(global_tempo_slider)
         self.global_tempo_slider = global_tempo_slider
+        self.colorables.append(global_tempo_slider)
 
         global_tempo_label = Label(text='Tempo',
                                    font_size=ELEMENT_LABEL_FONT_SIZE,
@@ -408,17 +414,18 @@ class GUI(Widget):
         music_tab_content.add_widget(track_music_label)
         
         track_volume_initial = music_player.get_volume(self.track_id)
-        track_volume_slider = Slider(min=MusicPlayer.MIN_VOLUME, 
-                                     max=MusicPlayer.MAX_VOLUME,
-                                     value=track_volume_initial,
-                                     orientation='horizontal',
-                                     height=MUSIC_SLIDER_HEIGHT,
-                                     width=MUSIC_SLIDER_WIDTH)
+        track_volume_slider = NSSlider(min=MusicPlayer.MIN_VOLUME, 
+                                       max=MusicPlayer.MAX_VOLUME,
+                                       value=track_volume_initial,
+                                       orientation='horizontal',
+                                       height=MUSIC_SLIDER_HEIGHT,
+                                       width=MUSIC_SLIDER_WIDTH)
         track_volume_slider.bind(on_touch_move=self.change_track_volume)
         track_volume_slider.center_x = tabs.center_x
         track_volume_slider.top = track_music_label.y - TAB_ELEMENT_PADDING
         music_tab_content.add_widget(track_volume_slider)
         self.track_volume_slider = track_volume_slider
+        self.colorables.append(track_volume_slider)
 
         track_volume_label = Label(text='Volume',
                                    font_size=ELEMENT_LABEL_FONT_SIZE,
@@ -431,17 +438,18 @@ class GUI(Widget):
         music_tab_content.add_widget(track_volume_label)
         
         track_reverb_initial = music_player.get_reverb(self.track_id)
-        track_reverb_slider = Slider(min=MusicPlayer.MIN_REVERB,
-                                     max=MusicPlayer.MAX_REVERB,
-                                     value=track_reverb_initial,
-                                     orientation='horizontal',
-                                     height=MUSIC_SLIDER_HEIGHT,
-                                     width=MUSIC_SLIDER_WIDTH)
+        track_reverb_slider = NSSlider(min=MusicPlayer.MIN_REVERB,
+                                       max=MusicPlayer.MAX_REVERB,
+                                       value=track_reverb_initial,
+                                       orientation='horizontal',
+                                       height=MUSIC_SLIDER_HEIGHT,
+                                       width=MUSIC_SLIDER_WIDTH)
         track_reverb_slider.bind(on_touch_move=self.change_track_reverb)
         track_reverb_slider.center_x = tabs.center_x
         track_reverb_slider.top = track_volume_label.y - TAB_ELEMENT_PADDING
         music_tab_content.add_widget(track_reverb_slider)
         self.track_reverb_slider = track_reverb_slider
+        self.colorables.append(track_reverb_slider)
 
         track_reverb_label = Label(text='Reverb',
                                    font_size=ELEMENT_LABEL_FONT_SIZE,
@@ -457,9 +465,9 @@ class GUI(Widget):
         network_tab = TabbedPanelHeader()
         network_tab.text = ""
         network_tab.background_normal = \
-            "assets/icons/network-wired.png"
+            "assets/icons/network-wired-2.png"
         network_tab.background_down = \
-            "assets/icons/network-wired.png"
+            "assets/icons/network-wired-2-down.png"
         tabs.add_widget(network_tab)
         
         TEXT_INPUT_HEIGHT = 30
@@ -544,9 +552,9 @@ class GUI(Widget):
         # System options tab
         system_tab = TabbedPanelHeader()
         system_tab.background_normal = \
-            "assets/icons/computer-4.png"
+            "assets/icons/media-floppy.png"
         system_tab.background_down = \
-            "assets/icons/computer-4.png"
+            "assets/icons/media-floppy-down.png"
         tabs.add_widget(system_tab)
 
         system_tab_content = Widget(width=TABS_WIDTH, height=TAB_CONTENT_HEIGHT)
@@ -620,6 +628,9 @@ class GUI(Widget):
         subtitle_label.top = title_label.y
         subtitle_label.x = TITLE_X
         self.add_widget(subtitle_label)
+
+        # Finishing steps
+        self.set_color(self.track_id)
 
     def __del__(self):
         """Destroy this instance of the GUI"""
@@ -720,6 +731,12 @@ class GUI(Widget):
         Maybe one day if Kivy changes this could break the operation of our
         ToggleButtons if the order in which parameters are sent changes
     """
+
+    """GUI helpers"""
+    def set_color(self, color_index):
+        new_color = self.TRACK_COLORS[color_index]
+        for colorable in self.colorables:
+            colorable.background_color = new_color
 
     """Network functions"""
     def start_server(self, button):
@@ -835,6 +852,7 @@ class GUI(Widget):
             self.track_id = track_select_index
             self.reload_notes()
             self.reload_sliders()
+            self.set_color(track_select_index)
         # On deselection, keep the button pressed
         elif button.state == 'normal':
             button.state = 'down'

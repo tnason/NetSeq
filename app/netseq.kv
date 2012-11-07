@@ -19,8 +19,6 @@
             pos: self.pos
             size: self.size
             source: self.background_normal if self.state == 'normal' else self.background_down
-            # source: 'atlas://assets/images/netseq-theme/button' if self.state == 'normal' else 'atlas://assets/images/netseq-theme/button_pressed'
-
         Color:
             rgba: self.color
         Rectangle:
@@ -46,8 +44,24 @@
 
 <Slider>:
     canvas:
+        Clear
         Color:
-            rgb: 1, 1, 1
+            rgba: self.background_color
+        BorderImage:
+            border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
+            pos: (self.x, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y)
+            size: (self.width, 37) if self.orientation == 'horizontal' else (37, self.height)
+            source: 'atlas://assets/images/netseq-theme/slider%s_background' % self.orientation[0]
+        Rectangle:
+            pos: (self.value_pos[0] - 16, self.center_y - 17) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
+            size: (32, 32)
+            source: 'atlas://assets/images/netseq-theme/slider_cursor'
+
+<NSSlider>:
+    canvas:
+        Clear
+        Color:
+            rgba: self.background_color
         BorderImage:
             border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
             pos: (self.x, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y)

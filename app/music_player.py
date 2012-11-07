@@ -66,7 +66,7 @@ class MusicPlayer:
             self.track_mixer.setAmp(inst_index, 0, instrument.get_volume())
         
         # Prepare master output
-        self.master_out = Mixer(outs=1)
+        self.master_out = Mixer(outs=1, chnls=2)
         self.master_out.addInput(0, self.track_mixer[0])
         self.master_out.setAmp(0, 0, self.global_volume)
         self.master_out.out()
