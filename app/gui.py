@@ -274,7 +274,6 @@ class GUI(Widget):
             track_button.center_y = PLAYBACK_CENTER_Y
             track_buttons.append(track_button)
             self.add_widget(track_button)
-            self.colorables.append(track_button)
             track_button_x += TRACK_BUTTON_WIDTH
         
         self.track_buttons = track_buttons        
@@ -734,9 +733,18 @@ class GUI(Widget):
 
     """GUI helpers"""
     def set_color(self, color_index):
+        # Color all 'neutral' elements
         new_color = self.TRACK_COLORS[color_index]
         for colorable in self.colorables:
             colorable.background_color = new_color
+
+        # Color currently-selected track button
+        for track_index in range(0, len(self.track_buttons)):
+            track_button = self.track_buttons[track_index]
+            if track_index == self.track_id:
+                track_button.background_color = self.TRACK_COLORS[track_index]
+            else:
+                track_button.background_color = [1.0, 1.0, 1.0, 1.0]
 
     """Network functions"""
     def start_server(self, button):
@@ -856,6 +864,9 @@ class GUI(Widget):
         # On deselection, keep the button pressed
         elif button.state == 'normal':
             button.state = 'down'
+
+    def reload_note_labels(self):
+        pass
 
     def reload_notes(self):
         # Reset button appearance to match which notes on page are selected

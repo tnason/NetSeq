@@ -36,11 +36,17 @@ class Instrument:
         self.reverb_out = None
         self.mixer = Mixer(outs=1)
 
+        # For GUI purposes, override this
+        self.names = []
+
     def __del__(self):
         pass
 
     def get_generator(self):
         return self.generator
+
+    def get_names(self):
+        return self.names
 
     def pause(self):
         self.mixer.stop()
@@ -92,8 +98,6 @@ class Instrument:
 class DrumInstrument(Instrument):
     """This provides functionality for a drum sample instrument"""
 
-    names = ["Crash", "Big Tom", "Small Tom", "Rim", "Hi Hat 2", "Hi Hat 1", 
-             "Snare", "Kick"]
     sample_files = ["crashedge5.ogg", "large_tom_40-50_1.ogg", 
                "small_tom_40-50_2.ogg", "sidestick24.ogg", "hohh_15.ogg", 
                "chh37.ogg", "snaretop_37.ogg", "kick_22.ogg"]
@@ -109,6 +113,9 @@ class DrumInstrument(Instrument):
        
         # Default instrument constructor
         Instrument.__init__(self, music_player, volume, reverb_mix, notes)
+
+        self.names = ["Crash", "Big Tom", "Small Tom", "Rim", "Hi Hat 2", 
+                      "Hi Hat 1", "Snare", "Kick"]
 
         # TODO: make this absolute and across files
         SOUND_PATH = "assets/sounds/osdrumkit/"
@@ -183,6 +190,8 @@ class WaveInstrument(Instrument):
         """
 
         Instrument.__init__(self, music_player, volume, reverb_mix, notes)
+
+        self.names = ["C", "D", "E", "F", "G", "A", "B", "C"] 
 
         self.wavetype = wavetype
         if (self.wavetype == self.BASS):

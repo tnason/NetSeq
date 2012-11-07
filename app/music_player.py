@@ -163,6 +163,9 @@ class MusicPlayer:
         return session
 
     """getter methods for GUI"""
+    def get_names(self, track_id):
+        return self.instruments[track_id].get_names()
+
     def get_reverb(self, track_id):
         return self.instruments[track_id].get_reverb()
 
