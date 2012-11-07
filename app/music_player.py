@@ -81,6 +81,11 @@ class MusicPlayer:
         """
         self.gui = gui
     
+    def terminate(self):
+        """Terminate MusicPlayer server in preparation for shutdown"""
+        self.server.stop()
+        self.server.shutdown()
+
     def step(self):
         """ Step the music player through next beat """
         # Set GUI to reflect current beat

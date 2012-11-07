@@ -18,22 +18,25 @@ from ns_widgets import NSSlider
 import Tkinter
 import tkFileDialog
 import cPickle
+from kivy.base import stopTouchApp
+import time
 
 class GUI(Widget):
     """Widget for all user interaction with sequencer"""
 
-    def __init__(self, music_player):
+    def __init__(self, app, music_player):
         """Create main GUI
 
         Arguments:
+        parent -- parent application to this widget
         music_player -- audio generator for full application
         network -- network client and server handler
 
         """
 
         # Initialize Tkinter, and instruct it hide root window
-        root = Tkinter.Tk()
-        root.withdraw()
+        self.tk_root = Tkinter.Tk()
+        self.tk_root.withdraw()
 
         # Perform widget initializations
         super(GUI, self).__init__()
@@ -45,6 +48,7 @@ class GUI(Widget):
 
         # Set default parameters to be used in accurately loading an
         # initial state to the GUI
+        self.app = app
         self.music_player = music_player
         self.track_id = MusicPlayer.WAVETABLE_A
 
@@ -595,6 +599,7 @@ class GUI(Widget):
                              text_size=SYSTEM_BUTTON_TEXT_SIZE, 
                              font_size=SYSTEM_BUTTON_FONT_SIZE,
                              halign='center', valign='middle')
+        quit_button.bind(on_press=self.exit)
         quit_button.center_x = tabs.center_x
         quit_button.top = save_button.y - SYSTEM_BUTTON_PADDING
         system_tab_content.add_widget(quit_button)        
@@ -763,11 +768,13 @@ class GUI(Widget):
             
     """System functions"""
     def load_file(self, button):
+        # Request filename through Tkinter
         load_types = [ ('NetSeq files', '*.ns')]
         filename = tkFileDialog.askopenfilename(defaultextension='.ns', 
                                                 title='Load Session',
                                                 filetypes=load_types)
 
+        # Check for filename validity
         if filename != '':
             try:
                 file = open(filename, 'r')
@@ -778,22 +785,34 @@ class GUI(Widget):
         else:
             file_valid = False        
 
+        # Load file if valid, sending to other clients
         if file_valid == True:
             session = cPickle.load(file)
             self.music_player.set_session(session)
+            self.network_handler.send_session(session)
             self.new_session()
 
     def save_file(self, button):
+        # Request filename through Tkinter
         filename = tkFileDialog.asksaveasfilename(defaultextension='.ns',
                                                   initialfile='my_session',
                                                   title='Save Session')
+        
+        # Save to file if name valid
         if filename != '':
             session = self.music_player.get_session()
             file = open(filename, 'w')
             cPickle.dump(session, file)
 
     def exit(self, button):
-        pass
+        """Process widget request to terminate program"""
+        stopTouchApp()
+
+    def destroy(self):
+        """Clean up all active entities attached to GUI"""
+        self.network_handler.terminate_connections()
+        self.music_player.terminate()
+        self.tk_root.tk.quit()
 
     """Music functions"""
     def trigger_note(self, button):
@@ -922,12 +941,24 @@ class NetSeqApp(App):
     def build(self):
         """Build GUI"""
         music_player = MusicPlayer()
-        gui_widget = GUI(music_player)
+        gui_widget = GUI(self, music_player)
         music_player.add_gui(gui_widget)
         network_handler = NetworkHandler(music_player, gui_widget)
         music_player.add_network_handler(network_handler)
         gui_widget.add_network_handler(network_handler)
+        self.gui_widget = gui_widget
         return gui_widget
+
+    def on_stop(self):
+        """Cleanly exit the application"""
+    
+        self.gui_widget.destroy()
+        
+        """XXX: This brief wait allows what I assume is the Tkinter and pyo
+           main loops to stop operating before Kivy attempts to quit"""
+        time.sleep(.5)
+        App.on_stop(self)
+
 
 if __name__ == "__main__":
     NetSeqApp().run()
