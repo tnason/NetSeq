@@ -58,9 +58,9 @@ class GUI(Widget):
         NOTE_BUTTON_WIDTH = 48
         NOTE_BUTTON_HEIGHT = 48
         NOTE_BUTTON_PADDING = 7
-        ROW_LABEL_WIDTH = 30
+        ROW_LABEL_WIDTH = 54
         ROW_LABEL_HEIGHT = NOTE_BUTTON_HEIGHT
-        ROW_LABEL_FONT_SIZE = 14
+        ROW_LABEL_FONT_SIZE = 10
         NOTE_BUTTON_ROWS = MusicPlayer.NUM_ROWS
         NOTE_BUTTON_COLS = MusicPlayer.NUM_COLS
 
@@ -630,6 +630,7 @@ class GUI(Widget):
 
         # Finishing steps
         self.set_color(self.track_id)
+        self.reload_row_labels()
 
     def __del__(self):
         """Destroy this instance of the GUI"""
@@ -859,14 +860,18 @@ class GUI(Widget):
             # Update GUI to reflect new track
             self.track_id = track_select_index
             self.reload_notes()
+            self.reload_row_labels()
             self.reload_sliders()
             self.set_color(track_select_index)
         # On deselection, keep the button pressed
         elif button.state == 'normal':
             button.state = 'down'
 
-    def reload_note_labels(self):
-        pass
+    def reload_row_labels(self):
+        row_text = self.music_player.get_names(self.track_id)
+        for row_index in range(0, self.music_player.NUM_ROWS):
+            row_label = self.row_labels[row_index]
+            row_label.text = row_text[row_index]            
 
     def reload_notes(self):
         # Reset button appearance to match which notes on page are selected

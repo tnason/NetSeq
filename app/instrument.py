@@ -114,8 +114,8 @@ class DrumInstrument(Instrument):
         # Default instrument constructor
         Instrument.__init__(self, music_player, volume, reverb_mix, notes)
 
-        self.names = ["Crash", "Big Tom", "Small Tom", "Rim", "Hi Hat 2", 
-                      "Hi Hat 1", "Snare", "Kick"]
+        self.names = ["Crash", "Big Tom", "Sm. Tom", "Rim", "HiHat 2", 
+                      "HiHat 1", "Snare", "Kick"]
 
         # TODO: make this absolute and across files
         SOUND_PATH = "assets/sounds/osdrumkit/"
