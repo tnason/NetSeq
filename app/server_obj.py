@@ -44,7 +44,7 @@ class ClientChannel(Channel):
             """rebroadcast a send session command from a client to all others"""
             for c in self._server.clients:
                 if c != self:
-                    c.Send({"action": "set_session", "session_data": data['session_data']})            
+                    c.Send({"action": "set_session", "session_string": data['session_string']})
 
 class ServerObj(Server):
         channelClass = ClientChannel
@@ -58,8 +58,9 @@ class ServerObj(Server):
         def Connected(self, channel, addr):
             self.AddClient(channel)
             """New client gets server's music player session"""
-            session_data = cPickle.dumps(self.music_player.get_session())
-            channel.Send({"action": "set_session", "session_data": session_data})
+            session_string = cPickle.dumps(self.music_player.get_session())
+            channel.Send({"action": "set_session", 
+                          "session_string": session_string})
 
         def AddClient(self, client):
             print "New client at " + str(client.addr)

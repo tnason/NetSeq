@@ -35,8 +35,8 @@ class Client(ConnectionListener):
         connection.Send({"action": "send_reverb", "reverb_data": reverb, "track_id": track_id})
 
     def send_session(self, session):
-        session_str = cPickle.dumps(session)
-        connection.Send({"action": "send_session", "session_string": session_str})
+        session_string = cPickle.dumps(session)
+        connection.Send({"action": "send_session", "session_string": session_string})
 
     #Network events
     def Network_set_note(self, data):
@@ -46,8 +46,6 @@ class Client(ConnectionListener):
         note_data = cPickle.loads(data['note_string'])  
         self.music_player.set_note(note_data)
         self.gui.set_note(note_data)
-        pass
-        
 
     def Network_set_volume(self, data):
         """callback for network triggered volume change"""
@@ -69,7 +67,7 @@ class Client(ConnectionListener):
 
     def Network_set_session(self, data):
         """callback for network triggered session load"""
-        session_data = cPickle.loads(data['session_data'])
+        session_data = cPickle.loads(data['session_string'])
         self.music_player.set_session(session_data)
         self.gui.new_session()
 
