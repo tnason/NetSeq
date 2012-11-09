@@ -1,8 +1,6 @@
 from kivy.app import App
+from kivy.base import stopTouchApp
 from kivy.uix.widget import Widget
-from music_player import Note
-from music_player import MusicPlayer
-from network_handler import NetworkHandler
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
@@ -13,13 +11,15 @@ from kivy.uix.textinput import TextInput
 from kivy.graphics.instructions import Canvas
 from kivy.graphics import Rectangle
 from kivy.graphics import Color
-from ns_widgets import NSToggleButton
-from ns_widgets import NSSlider
+
 import Tkinter
 import tkFileDialog
 import cPickle
-from kivy.base import stopTouchApp
 import time
+
+from music_player import Note, MusicPlayer
+from network_handler import NetworkHandler
+from ns_widgets import NSToggleButton, NSSlider, NSDisableButton
 
 class GUI(Widget):
     """Widget for all user interaction with sequencer"""
@@ -483,6 +483,8 @@ class GUI(Widget):
         NETWORK_BUTTON_FONT_SIZE = 12
         NETWORK_BUTTON_TEXT_SIZE = [NETWORK_BUTTON_WIDTH, NETWORK_BUTTON_HEIGHT]
 
+        SERVER_PORT_TEXT = 'Server Port'
+        SERVER_IP_TEXT = 'Server IP'
         network_tab_content = Widget(width=TABS_WIDTH, height=TAB_CONTENT_HEIGHT)
         network_tab.content = network_tab_content
 
@@ -501,22 +503,28 @@ class GUI(Widget):
         # Server startup input
         # TODO: clear these fields when clicked, and do not clear when <Enter>
         # is pressed
-        server_port_input = TextInput(text='Port', width=PORT_INPUT_WIDTH,
+        server_port_input = TextInput(text=SERVER_PORT_TEXT, 
+                                      width=PORT_INPUT_WIDTH,
                                       height=TEXT_INPUT_HEIGHT)
+        server_port_input.bind(focus=self.select_text_input)
+        server_port_input.original_text = SERVER_PORT_TEXT
         server_port_input.x = TABS_X + TAB_SECTION_PADDING
         server_port_input.top = your_ip_label.y - TAB_ELEMENT_PADDING
         network_tab_content.add_widget(server_port_input)
         self.server_port_input = server_port_input
 
-        server_ip_input = TextInput(text='IP Address', width=IP_INPUT_WIDTH,
+        server_ip_input = TextInput(text=SERVER_IP_TEXT,
+                                    width=IP_INPUT_WIDTH,
                                     height=TEXT_INPUT_HEIGHT)
+        server_ip_input.bind(focus=self.select_text_input)
+        server_ip_input.original_text=SERVER_IP_TEXT
         server_ip_input.x = server_port_input.right + TAB_ELEMENT_PADDING
         server_ip_input.top = server_port_input.top
         network_tab_content.add_widget(server_ip_input)
         self.server_ip_input = server_ip_input
 
         # TODO: implement disable-able buttons for these!
-        server_start_button = Button(text='Start server', 
+        server_start_button = NSDisableButton(text='Start server', 
                                      width=NETWORK_BUTTON_WIDTH,
                                      height=NETWORK_BUTTON_HEIGHT,
                                      text_size=NETWORK_BUTTON_TEXT_SIZE,
@@ -528,7 +536,7 @@ class GUI(Widget):
         network_tab_content.add_widget(server_start_button)
         self.server_start_button = server_start_button
 
-        join_server_button = Button(text='Join server',
+        join_server_button = NSDisableButton(text='Join server',
                                     width=NETWORK_BUTTON_WIDTH,
                                     height=NETWORK_BUTTON_HEIGHT,
                                     text_size=NETWORK_BUTTON_TEXT_SIZE,
@@ -540,13 +548,14 @@ class GUI(Widget):
         network_tab_content.add_widget(join_server_button)
         self.join_server_button = join_server_button
 
-        end_connection_button = Button(text='End connection',
+        end_connection_button = NSDisableButton(text='End connection',
                                        width=NETWORK_BUTTON_WIDTH,
                                        height=NETWORK_BUTTON_HEIGHT,
                                        text_size=NETWORK_BUTTON_TEXT_SIZE,
                                        font_size=NETWORK_BUTTON_FONT_SIZE,
                                        halign='center', valign='middle')
         end_connection_button.bind(on_press=self.end_connection)
+        end_connection_button.disable()
         end_connection_button.x = server_start_button.x
         end_connection_button.top = join_server_button.y - TAB_ELEMENT_PADDING
         network_tab_content.add_widget(end_connection_button)
@@ -753,19 +762,54 @@ class GUI(Widget):
                 track_button.background_color = [1.0, 1.0, 1.0, 1.0]
 
     """Network functions"""
+    def select_text_input(self, input, value):
+        """Delete text on entry. Restore old text when leaving"""
+        if value == True:
+            input.last_text = input.text
+            input.select_all()
+            input.delete_selection()
+        elif value == False:
+            if input.text == '':
+                input.text = input.last_text
+
     def start_server(self, button):
+        valid_input = True
         server_ip = self.server_ip_input.text
-        server_port = int(self.server_port_input.text)
-        self.network_handler.start_server(server_ip, server_port)        
+
+        try:
+            server_port = int(self.server_port_input.text)
+        except ValueError:
+            print "@@ Invalid port number"
+            valid_input = False
+            
+        if valid_input == True:
+            self.network_handler.start_server(server_ip, server_port)
+            self.end_connection_button.enable()
+            self.server_start_button.disable()
+            self.join_server_button.disable()
 
     def join_server(self, button):
+        valid_input = True
         server_ip = self.server_ip_input.text
-        server_port = int(self.server_port_input.text)
-        self.network_handler.connect_to_server(server_ip, server_port)
+
+        try:
+            server_port = int(self.server_port_input.text)
+        except ValueError:
+            print "@@ Invalid port number"
+            valid_input = False
+
+        if valid_input == True:
+            self.network_handler.connect_to_server(server_ip, server_port)
+            self.end_connection_button.enable()
+            self.server_start_button.disable()
+            self.join_server_button.disable()
 
     def end_connection(self, button):
         self.network_handler.terminate_connections()
-            
+        self.end_connection_button.disable()
+        self.server_start_button.enable()
+        self.join_server_button.enable()
+        
     """System functions"""
     def load_file(self, button):
         # Request filename through Tkinter
@@ -798,10 +842,20 @@ class GUI(Widget):
                                                   initialfile='my_session',
                                                   title='Save Session')
         
-        # Save to file if name valid
+        # Check if filename valid
         if filename != '':
             session = self.music_player.get_session()
-            file = open(filename, 'w')
+            try:
+                file = open(filename, 'w')
+                file_valid = True
+            except IOError:
+                print "Invalid filename!"
+                file_valid = False
+        else:
+            file_valid = False
+
+        # Save file if filename valid
+        if file_valid == True:
             cPickle.dump(session, file)
 
     def exit(self, button):
