@@ -191,7 +191,7 @@ class WaveInstrument(Instrument):
 
         Instrument.__init__(self, music_player, volume, reverb_mix, notes)
 
-        self.names = ["C", "D", "E", "F", "G", "A", "B", "C"] 
+        self.names = ["C", "B", "A", "G", "F", "E", "D", "C"] 
 
         self.wavetype = wavetype
         if (self.wavetype == self.BASS):
