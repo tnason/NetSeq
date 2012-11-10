@@ -6,19 +6,29 @@ from sys import exit
 import cPickle
 
 class Client(ConnectionListener):
-    
+    """Client for recieving music data"""    
+
     def __init__(self, music_player, gui, host, port):
-            self.Connect((host, port))
-            self.music_player = music_player
-            self.gui = gui
-            print "##client started"
+        """Create new client"""
+        self.music_player = music_player
+        self.gui = gui
+    
+        self.Connect((host, port))
+
+        """Attempt to make connection. Cleanup if impossible"""
+        # try:
+        #    self.Connect((host, port))
+        # except:
+        #    print "@@ Error caught in Client constructor"
+        #    connection.Close()
+        #    raise
 
     def __del__(self):
         pass
 
     def Loop(self):
-            connection.Pump()
-            self.Pump()
+        connection.Pump()
+        self.Pump()
 
     def send_note(self, note):
         """function call to send note data to server"""
@@ -37,6 +47,10 @@ class Client(ConnectionListener):
     def send_session(self, session):
         session_string = cPickle.dumps(session)
         connection.Send({"action": "send_session", "session_string": session_string})
+
+    def terminate(self):
+        print "@@ Terminating client!"
+        connection.Close()
 
     #Network events
     def Network_set_note(self, data):
@@ -77,9 +91,12 @@ class Client(ConnectionListener):
 	
     def Network_error(self, data):
         print 'error:', data['error'][1]
+        raise ClientNetworkError
         connection.Close()
 	
     def Network_disconnected(self, data):
-        print 'Server disconnected'
-        exit()
+        print '@@ Server disconnected'
 
+
+class ClientNetworkError(BaseException):
+    """Error in creating or operating client!"""

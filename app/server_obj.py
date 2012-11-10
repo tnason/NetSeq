@@ -61,7 +61,10 @@ class ServerObj(Server):
         """Construct new Server object.
 
         Adapted heavily from the primary 'Server' constructor
-        within """
+        within PodSixNet source
+
+        """
+
         self.clients = WeakKeyDictionary()
         self.music_player = music_player
         if channelClass:
@@ -76,12 +79,15 @@ class ServerObj(Server):
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
         self.set_reuse_addr()
-   
+        
+        # self.bind(localaddr)
         # Attempt to bind to requested address
         try:
             self.bind(localaddr)
         except:
-            print "@@ Error binding to address. Please try again"
+            print "@@ Error caught in server creation"
+            self.close()
+            raise
 
         # Start listenting
         self.listen(listeners)

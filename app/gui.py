@@ -783,37 +783,46 @@ class GUI(Widget):
         valid_input = True
         server_ip = self.server_ip_input.text
 
+        """Check for valid input"""
         try:
             server_port = int(self.server_port_input.text)
         except ValueError:
             print "@@ Invalid port number"
             valid_input = False
-            
+        
+        """Start server if input valid"""
         if valid_input == True:
-            self.network_handler.start_server(server_ip, server_port)
-            self.end_connection_button.enable()
-            self.server_start_button.disable()
-            self.join_server_button.disable()
-            self.server_ip_input.disable()
-            self.server_port_input.disable()
+            server_created = self.network_handler.start_server(server_ip, 
+                                                               server_port)
+            if (server_created == True):
+                self.end_connection_button.enable()
+                self.server_start_button.disable()
+                self.join_server_button.disable()
+                self.server_ip_input.disable()
+                self.server_port_input.disable()
 
     def join_server(self, button):
         valid_input = True
         server_ip = self.server_ip_input.text
 
+        """Check for valid input"""
         try:
             server_port = int(self.server_port_input.text)
         except ValueError:
             print "@@ Invalid port number"
             valid_input = False
 
+        """Connect to server if input valid"""
         if valid_input == True:
-            self.network_handler.connect_to_server(server_ip, server_port)
-            self.end_connection_button.enable()
-            self.server_start_button.disable()
-            self.join_server_button.disable()
-            self.server_ip_input.disable()
-            self.server_port_input.disable()
+            connected = self.network_handler.connect_to_server(server_ip, 
+                                                               server_port)
+            if connected == True:
+                print "@@ Connected to server, says GUI!"
+                self.end_connection_button.enable()
+                self.server_start_button.disable()
+                self.join_server_button.disable()
+                self.server_ip_input.disable()
+                self.server_port_input.disable()
 
     def end_connection(self, button):
         self.network_handler.terminate_connections()

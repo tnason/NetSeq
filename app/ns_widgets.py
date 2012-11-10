@@ -17,15 +17,20 @@ from kivy.uix.textinput import TextInput
 class NSTextInput(TextInput):
     """TextInput that can be enabled and disabled"""
 
+    DISABLED_COLOR = [0.5, 0.5, 0.5, 1.0]
+    ENABLED_COLOR = [1.0, 1.0, 1.0, 1.0]
+
     def __init__(self, **kwargs):
         TextInput.__init__(self, **kwargs)
-        self.enabled = True
+        self.enable()
 
     def enable(self):
         self.enabled = True
+        self.background_color = self.ENABLED_COLOR
 
     def disable(self):
         self.enabled = False
+        self.background_color = self.DISABLED_COLOR
         self.focus = False
 
     def on_touch_down(self, touch):

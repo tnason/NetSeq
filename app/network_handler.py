@@ -9,11 +9,15 @@
     This class will also notify the main app upon network termination
         And allow for remote termination from the network app
 """
-from client import Client
 from server_obj import ServerObj
 from network_thread import NetworkThread
-from time import sleep
 from music_player import MusicPlayer
+
+from client import Client, ClientNetworkError
+
+import sys
+from time import sleep
+import socket
 
 NOT_CONNECTED = 0
 NETWORK_CLIENT = 1
@@ -34,45 +38,131 @@ class NetworkHandler():
         self.connected = NOT_CONNECTED #integer flag indicating connection state
 
     def connect_to_server(self, server_ip, server_port):
-        """server_ip sent as a string, server_port as an int"""
-        self.client = Client(self.music_player, self.gui, server_ip, server_port)
-        #TODO: Check to make sure client was made successfully?
-        self.client_thread = NetworkThread("client", self.client)
-        self.client_thread.start()
-        self.connected = NETWORK_CLIENT
+        """Connect to a pre-existing server for collaboration.
+
+        Arguments:
+        server_ip: IP address of server to connect to
+        server_port: Port of server to connect to
+
+        Return:
+        True if connection successful, False otherwise
+
+        """
+
+        valid_client = True
+
+        """Check if the address could be reached!"""
+        valid_address = True
+        try:
+            socket.gethostbyaddr(server_ip)
+        except socket.gaierror:
+            print "@@ Invalid server address!"
+            valid_address = False
+            valid_client = False
+
+        """If address reachable, then connect to server"""
+        if valid_address == True:
+
+            """Attempt to open client"""
+            try:
+                self.client = Client(self.music_player, self.gui, server_ip,
+                                     server_port)
+            except socket.gaierror:
+                print "@@ Server address error. Check your input."
+                valid_client = False
+            except ClientNetworkError:
+                print "@@ Client pipeline has error!"
+                valid_client = False
+            except:
+                print "@@ Client creation error:", sys.exc_info()[0]
+                valid_client = False
+
+            if self.client != None and valid_client == True:
+                try:
+                    self.client.Loop()
+                except:
+                    valid_client = False
+                    print "@@ Deathly error when first client loop run!"
+
+            """Create client thread if client was created"""
+            if valid_client == True:
+                print "@@ Valid client"
+                self.client_thread = NetworkThread("client", self.client)
+                self.client_thread.start()
+                self.connected = NETWORK_CLIENT
+            else:
+                if self.client != None:
+                    self.client.terminate()
+                    self.client = None
+                self.connected = NOT_CONNECTED
+
+        return valid_client
         
     def start_server(self, server_ip, server_port):
-        """server_ip sent as a string, server_port as an int"""
-        self.server = ServerObj(self.music_player, localaddr=(server_ip, 
-                                                              server_port))
-        #TODO: Check to make sure server was made successfully?
-        self.server_thread = NetworkThread("server", self.server)
-        self.server_thread.start()
+        """Start server
+   
+        Arguments:
+        server_ip: IP address of server
+        server_port: port on server to accept network transactions
+    
+        Return:
+        True if server created successfully, false otherwise
 
-        self.client = Client(self.music_player, self.gui, server_ip, server_port)
-        #TODO: Check to make sure client was made successfully?
-        self.client_thread = NetworkThread("client", self.client)
-        self.client_thread.start()
-        self.connected = NETWORK_SERVER
+        """
+        valid_server = True
+
+        """Attempt to create server"""
+        try: 
+            self.server = ServerObj(self.music_player, 
+                                    localaddr=(server_ip, server_port))
+        except socket.gaierror:
+            print "@@ Error binding address. Check your input."
+            valid_server = False
+        except:
+            print "@@ Server creation error. Please try again!"
+            valid_server = False
+         
+        """If server created, make thread for server, and make client"""   
+        if valid_server == True:
+            self.server_thread = NetworkThread("server", self.server)
+            self.server_thread.start()
+            valid_client = self.connect_to_server(server_ip, server_port)
+            if valid_client == False:
+                self.destroy_server()
+                valid_server = False
+                self.connected = NOT_CONNECTED
+            else:
+                self.connected = NETWORK_SERVER
+        else:
+            if (self.server != None):
+                self.server.terminate()
+                self.server = None
         
+        return valid_server
+
     def terminate_connections(self):
         if self.connected == NOT_CONNECTED:
             pass
-            #TODO: error message?
         elif self.connected == NETWORK_CLIENT:
-            self.client_thread.terminate()
-            self.client_thread = None
+            self.destroy_client()
         elif self.connected == NETWORK_SERVER:
-            self.server_thread.terminate()
-            self.client_thread.terminate()
-            self.server_thread = None
-            self.client_thread = None
-            self.server.terminate()
-            self.server = None
+            self.destroy_client()
+            self.destroy_server()
 
         self.connected = NOT_CONNECTED
-        #TODO: Anything else need to be done to clean up network objects?
  
+    def destroy_server(self):
+        self.server_thread.terminate()
+        self.server_thread = None
+        self.server.terminate()
+        self.server = None
+
+    def destroy_client(self):
+        self.client_thread.terminate()
+        self.client_thread = None
+        self.client.terminate()
+        self.client = None
+
     def get_server_ip(self):
         """Get IP address of the server if one is active"""
         pass
