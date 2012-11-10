@@ -67,6 +67,8 @@ class NetworkHandler():
             self.client_thread.terminate()
             self.server_thread = None
             self.client_thread = None
+            self.server.terminate()
+            self.server = None
 
         self.connected = NOT_CONNECTED
         #TODO: Anything else need to be done to clean up network objects?

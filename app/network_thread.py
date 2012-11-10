@@ -24,4 +24,5 @@ class NetworkThread(threading.Thread):
         print "thread exiting"
         self._stopevent.set()
         threading.Thread.join(self, timeout=None)
+        self.network_object = None
         

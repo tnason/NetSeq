@@ -1,14 +1,18 @@
-#python module for a PodSixNet 'chat' server
-import sys
-from time import sleep
-from weakref import WeakKeyDictionary
 from music_player import MusicPlayer
+
+import socket
+import asyncore
 from PodSixNet.Server import Server
 from PodSixNet.Channel import Channel
-import cPickle
 
+import sys
+from time import sleep
+import cPickle
+from weakref import WeakKeyDictionary
 
 class ClientChannel(Channel):
+    """Channel over which data is sent by the server"""
+ 
     def __init__(self, *args, **kwargs):
         Channel.__init__(self, *args, **kwargs)
 
@@ -46,15 +50,46 @@ class ClientChannel(Channel):
             if c != self:
                 c.Send({"action": "set_session", "session_string": data['session_string']})
 
+
 class ServerObj(Server):
+    """Primary 'server', or authority of network interations"""
  
     channelClass = ClientChannel
 
-    def __init__(self, music_player, *args, **kwargs):
-        Server.__init__(self, *args, **kwargs)
-        self.clients = WeakKeyDictionary() #Store weak references to clients
+    def __init__(self, music_player, channelClass=None, 
+                 localaddr=("127.0.0.1", 31425), listeners=5):
+        """Construct new Server object.
+
+        Adapted heavily from the primary 'Server' constructor
+        within """
+        self.clients = WeakKeyDictionary()
         self.music_player = music_player
-        print '@@ Server launched'
+        if channelClass:
+            self.channelClass = channelClass
+       
+        # asyncore setup
+        self._map = {}
+        self.channels = []
+        asyncore.dispatcher.__init__(self, map=self._map)
+
+        # Create socket for communications
+        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+        self.set_reuse_addr()
+   
+        # Attempt to bind to requested address
+        try:
+            self.bind(localaddr)
+        except:
+            print "@@ Error binding to address. Please try again"
+
+        # Start listenting
+        self.listen(listeners)
+
+    def terminate(self):
+        """Destroy server cleanly"""
+        print "@@ In server 'terminate'"
+        self.close()
 
     def Connected(self, channel, addr):
         self.AddClient(channel)
@@ -78,11 +113,3 @@ class ServerObj(Server):
     def Loop(self):
         self.Pump()
 
-    def run_loop(self):
-        self.Run()
-
-    def Run(self):
-        while True:
-            self.Pump()
-            sleep(0.0001)
-    

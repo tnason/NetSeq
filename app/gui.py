@@ -7,7 +7,6 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.tabbedpanel import TabbedPanelHeader
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.textinput import TextInput
 from kivy.graphics.instructions import Canvas
 from kivy.graphics import Rectangle
 from kivy.graphics import Color
@@ -19,7 +18,7 @@ import time
 
 from music_player import Note, MusicPlayer
 from network_handler import NetworkHandler
-from ns_widgets import NSToggleButton, NSSlider, NSDisableButton
+from ns_widgets import NSToggleButton, NSSlider, NSDisableButton, NSTextInput
 
 class GUI(Widget):
     """Widget for all user interaction with sequencer"""
@@ -478,52 +477,60 @@ class GUI(Widget):
         IP_INPUT_WIDTH = TABS_WIDTH - TAB_SECTION_PADDING - \
                          PORT_INPUT_WIDTH - TAB_ELEMENT_PADDING - \
                          TAB_SECTION_PADDING
+        PORT_LABEL_TEXT_SIZE = [PORT_INPUT_WIDTH, ELEMENT_LABEL_HEIGHT]
+        IP_LABEL_TEXT_SIZE = [IP_INPUT_WIDTH, ELEMENT_LABEL_HEIGHT]
         NETWORK_BUTTON_WIDTH = TABS_WIDTH - TAB_SECTION_PADDING * 2
-        NETWORK_BUTTON_HEIGHT = 40
+        NETWORK_BUTTON_HEIGHT = 80
         NETWORK_BUTTON_FONT_SIZE = 12
         NETWORK_BUTTON_TEXT_SIZE = [NETWORK_BUTTON_WIDTH, NETWORK_BUTTON_HEIGHT]
 
         SERVER_PORT_TEXT = 'Server Port'
-        SERVER_IP_TEXT = 'Server IP'
+        SERVER_IP_TEXT = 'Server IP Address'
         network_tab_content = Widget(width=TABS_WIDTH, height=TAB_CONTENT_HEIGHT)
         network_tab.content = network_tab_content
 
-        # TODO: Initialize this will global IP
-        your_ip_label = Label(text='Your IP address is: ', 
-                              font_size=ELEMENT_LABEL_FONT_SIZE,
-                              width=ELEMENT_LABEL_WIDTH,
-                              height=ELEMENT_LABEL_HEIGHT,
-                              text_size=ELEMENT_LABEL_TEXT_SIZE,
-                              valign='middle')
-        your_ip_label.x = TABS_X + TAB_SECTION_PADDING
-        your_ip_label.top = TAB_CONTENT_TOP - TAB_SECTION_PADDING
-        network_tab_content.add_widget(your_ip_label)
-        self.your_ip_label = your_ip_label
+        # Server input labels
+        server_port_label = Label(text=SERVER_PORT_TEXT, 
+                                  width=PORT_INPUT_WIDTH,
+                                  height=ELEMENT_LABEL_HEIGHT,
+                                  text_size=PORT_LABEL_TEXT_SIZE,
+                                  font_size=ELEMENT_LABEL_FONT_SIZE)
+        server_port_label.top = TAB_CONTENT_TOP - TAB_SECTION_PADDING
+        server_port_label.x = TABS_X + TAB_SECTION_PADDING
+        network_tab_content.add_widget(server_port_label)
+
+        server_ip_label = Label(text=SERVER_IP_TEXT, 
+                                  width=IP_INPUT_WIDTH,
+                                  height=ELEMENT_LABEL_HEIGHT,
+                                  text_size=IP_LABEL_TEXT_SIZE,
+                                  font_size=ELEMENT_LABEL_FONT_SIZE)
+        server_ip_label.top = server_port_label.top
+        server_ip_label.x = server_port_label.right + TAB_ELEMENT_PADDING
+        network_tab_content.add_widget(server_ip_label)
 
         # Server startup input
-        # TODO: clear these fields when clicked, and do not clear when <Enter>
-        # is pressed
-        server_port_input = TextInput(text=SERVER_PORT_TEXT, 
-                                      width=PORT_INPUT_WIDTH,
-                                      height=TEXT_INPUT_HEIGHT)
+        server_port_input = NSTextInput(text='', 
+                                        width=PORT_INPUT_WIDTH,
+                                        height=TEXT_INPUT_HEIGHT,
+                                        multiline=False)
         server_port_input.bind(focus=self.select_text_input)
         server_port_input.original_text = SERVER_PORT_TEXT
-        server_port_input.x = TABS_X + TAB_SECTION_PADDING
-        server_port_input.top = your_ip_label.y - TAB_ELEMENT_PADDING
+        server_port_input.x = server_port_label.x
+        server_port_input.top = server_port_label.y - TAB_ELEMENT_PADDING
         network_tab_content.add_widget(server_port_input)
         self.server_port_input = server_port_input
 
-        server_ip_input = TextInput(text=SERVER_IP_TEXT,
-                                    width=IP_INPUT_WIDTH,
-                                    height=TEXT_INPUT_HEIGHT)
+        server_ip_input = NSTextInput(text='',
+                                      width=IP_INPUT_WIDTH,
+                                      height=TEXT_INPUT_HEIGHT,
+                                      multiline=False)
         server_ip_input.bind(focus=self.select_text_input)
         server_ip_input.original_text=SERVER_IP_TEXT
-        server_ip_input.x = server_port_input.right + TAB_ELEMENT_PADDING
+        server_ip_input.x = server_ip_label.x
         server_ip_input.top = server_port_input.top
         network_tab_content.add_widget(server_ip_input)
         self.server_ip_input = server_ip_input
 
-        # TODO: implement disable-able buttons for these!
         server_start_button = NSDisableButton(text='Start server', 
                                      width=NETWORK_BUTTON_WIDTH,
                                      height=NETWORK_BUTTON_HEIGHT,
@@ -787,6 +794,8 @@ class GUI(Widget):
             self.end_connection_button.enable()
             self.server_start_button.disable()
             self.join_server_button.disable()
+            self.server_ip_input.disable()
+            self.server_port_input.disable()
 
     def join_server(self, button):
         valid_input = True
@@ -803,13 +812,17 @@ class GUI(Widget):
             self.end_connection_button.enable()
             self.server_start_button.disable()
             self.join_server_button.disable()
+            self.server_ip_input.disable()
+            self.server_port_input.disable()
 
     def end_connection(self, button):
         self.network_handler.terminate_connections()
         self.end_connection_button.disable()
         self.server_start_button.enable()
         self.join_server_button.enable()
-        
+        self.server_ip_input.enable()
+        self.server_port_input.enable()
+    
     """System functions"""
     def load_file(self, button):
         # Request filename through Tkinter
