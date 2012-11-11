@@ -7,6 +7,7 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.tabbedpanel import TabbedPanelHeader
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.popup import Popup
 from kivy.graphics.instructions import Canvas
 from kivy.graphics import Rectangle
 from kivy.graphics import Color
@@ -18,7 +19,8 @@ import time
 
 from music_player import Note, MusicPlayer
 from network_handler import NetworkHandler
-from ns_widgets import NSToggleButton, NSSlider, NSDisableButton, NSTextInput
+from ns_widgets import NSToggleButton, NSSlider, NSDisableButton, \
+                       NSTextInput, NSPopup, NSWidget
 
 class GUI(Widget):
     """Widget for all user interaction with sequencer"""
@@ -57,6 +59,11 @@ class GUI(Widget):
                              [.8, .5, .3, 1.0]]
         self.colorables = []
 
+        # Create widget for the main layout. This will be added separately
+        # from each of our popup windows
+        self.main_layout = NSWidget()
+        self.add_widget(self.main_layout)
+
         # BUTTON GRID
         NOTE_BUTTON_WIDTH = 48
         NOTE_BUTTON_HEIGHT = 48
@@ -88,7 +95,7 @@ class GUI(Widget):
         playhead_canvas.add(playhead)
         playhead_canvas.opacity = PLAYHEAD_OPACITY
         playhead_widget.canvas = playhead_canvas
-        self.add_widget(playhead_widget)
+        self.main_layout.add_widget(playhead_widget)
         self.playhead = playhead
 
         # For each row, create labels and notes
@@ -108,7 +115,7 @@ class GUI(Widget):
                               valign='middle')
             row_label.x = col_x
             row_label.top = row_top
-            self.add_widget(row_label)
+            self.main_layout.add_widget(row_label)
             self.row_labels.append(row_label)
 
             col_x = col_x + ROW_LABEL_WIDTH + NOTE_BUTTON_PADDING
@@ -123,7 +130,7 @@ class GUI(Widget):
                 col_button.top = row_top
                 col_button.bind(on_press=self.trigger_note)
                 row_notes.append(col_button)
-                self.add_widget(col_button)
+                self.main_layout.add_widget(col_button)
                 self.colorables.append(col_button)
                 col_x = col_x + NOTE_BUTTON_WIDTH + NOTE_BUTTON_PADDING
                 
@@ -187,7 +194,7 @@ class GUI(Widget):
         play_button.x = PLAY_BUTTON_X
         play_button.center_y = PLAYBACK_CENTER_Y
         self.play_button = play_button
-        self.add_widget(play_button)
+        self.main_layout.add_widget(play_button)
         self.colorables.append(play_button)
 
         # Buttons to play one page or all
@@ -201,7 +208,7 @@ class GUI(Widget):
         one_page_button.x = play_button.right + PLAYBACK_PADDING
         one_page_button.top = PLAYBACK_CENTER_Y + PLAYALL_BUTTON_HEIGHT
         self.one_page_button = one_page_button
-        self.add_widget(one_page_button)
+        self.main_layout.add_widget(one_page_button)
         self.colorables.append(one_page_button)
 
         all_pages_button = NSToggleButton(width=PLAYALL_BUTTON_WIDTH,
@@ -214,7 +221,7 @@ class GUI(Widget):
         all_pages_button.x = one_page_button.x
         all_pages_button.top = PLAYBACK_CENTER_Y
         self.all_pages_button = all_pages_button
-        self.add_widget(all_pages_button)
+        self.main_layout.add_widget(all_pages_button)
         self.colorables.append(all_pages_button)
         
         if music_player.play_all == False:
@@ -235,7 +242,7 @@ class GUI(Widget):
         page_label.x = page_button_x
         page_label.top = PLAYBACK_CENTER_Y - (PAGE_BUTTON_HEIGHT / 2) - \
                          PAGE_LABEL_OFFSET
-        self.add_widget(page_label)
+        self.main_layout.add_widget(page_label)
         for page_index in range(0, NUM_PAGE_BUTTONS):
             page_id = 'page' + str(page_index)
             page_button = NSToggleButton(width=PAGE_BUTTON_WIDTH,
@@ -244,7 +251,7 @@ class GUI(Widget):
             page_button.x = page_button_x
             page_button.center_y = PLAYBACK_CENTER_Y
             page_buttons.append(page_button)
-            self.add_widget(page_button)
+            self.main_layout.add_widget(page_button)
             self.colorables.append(page_button)
             page_button_x += PAGE_BUTTON_WIDTH
 
@@ -254,8 +261,6 @@ class GUI(Widget):
         page_buttons[music_player.page_index].state = 'down'
 
         # Track selection buttons
-        # TODO: color these! And pages, too!
-
         TRACK_BUTTON_FONT_SIZE = 10
         TRACK_BUTTON_TEXT_SIZE = [TRACK_BUTTON_WIDTH, TRACK_BUTTON_HEIGHT]
         
@@ -276,7 +281,7 @@ class GUI(Widget):
             track_button.x = track_button_x
             track_button.center_y = PLAYBACK_CENTER_Y
             track_buttons.append(track_button)
-            self.add_widget(track_button)
+            self.main_layout.add_widget(track_button)
             track_button_x += TRACK_BUTTON_WIDTH
         
         self.track_buttons = track_buttons        
@@ -294,7 +299,7 @@ class GUI(Widget):
                            halign='center', valign='middle')
         track_label.x = leftmost_track_button.x
         track_label.top = leftmost_track_button.y - TRACK_LABEL_OFFSET
-        # self.add_widget(track_label)
+        # self.main_layout.add_widget(track_label)
 
         # SETTINGS TABS
         TABS_X = OUTER_PADDING + GRID_WIDTH + OUTER_PADDING
@@ -329,7 +334,7 @@ class GUI(Widget):
                            height=TABS_HEIGHT)
         tabs.x = TABS_X
         tabs.y = TABS_Y
-        self.add_widget(tabs)
+        self.main_layout.add_widget(tabs)
         self.tabs = tabs
 
         # Music tab (default)
@@ -637,7 +642,7 @@ class GUI(Widget):
                             font_size=TITLE_FONT_SIZE)
         title_label.top = PLAYBACK_TOP
         title_label.x = TITLE_X
-        self.add_widget(title_label)
+        self.main_layout.add_widget(title_label)
 
         subtitle_label = Label(text='Music with Friends',
                                width=SUBTITLE_WIDTH,
@@ -647,7 +652,7 @@ class GUI(Widget):
                                halign='center', valign='middle')
         subtitle_label.top = title_label.y
         subtitle_label.x = TITLE_X
-        self.add_widget(subtitle_label)
+        self.main_layout.add_widget(subtitle_label)
 
         # Finishing steps
         self.set_color(self.track_id)
@@ -781,6 +786,7 @@ class GUI(Widget):
 
     def start_server(self, button):
         valid_input = True
+        server_created = False
         server_ip = self.server_ip_input.text
 
         """Check for valid input"""
@@ -800,6 +806,9 @@ class GUI(Widget):
                 self.join_server_button.disable()
                 self.server_ip_input.disable()
                 self.server_port_input.disable()
+        
+        if server_created == False:
+            self.create_popup("Error creating server", {'OK':None})
 
     def join_server(self, button):
         valid_input = True
@@ -909,6 +918,17 @@ class GUI(Widget):
         self.music_player.set_note(trigger_data)
         self.network_handler.send_note(trigger_data)
     
+    """GUI helpers"""
+    def create_popup(self, text, options):
+        new_popup = NSPopup(text, options)
+        self.add_widget(new_popup)
+        self.main_layout.disable()
+        new_popup.bind(state=self.enable_main_layout)
+
+    def enable_main_layout(self, popup, state):
+        if state == 'done':
+            self.main_layout.enable()
+
     """ Functions for GUI to change fields within the MusicPlayer and those
         of other clients through network """
     def change_global_volume(self, slider, value):
@@ -1036,5 +1056,6 @@ class NetSeqApp(App):
         App.on_stop(self)
 
 
+"""TODO: move this driver to smarter place"""
 if __name__ == "__main__":
     NetSeqApp().run()

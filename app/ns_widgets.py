@@ -13,6 +13,168 @@ from kivy.uix.slider import Slider
 from kivy.properties import ListProperty
 from kivy.properties import OptionProperty
 from kivy.uix.textinput import TextInput
+from kivy.uix.popup import Popup
+from kivy.uix.widget import Widget
+from kivy.uix.label import Label
+
+from kivy.graphics.instructions import Canvas
+from kivy.graphics import Rectangle
+from kivy.graphics import Color
+from kivy.core.window import Window
+
+class NSWidget(Widget):
+    """Disable-able widget (absorbs clicks"""
+
+    enabled = True
+
+    def enable(self):
+        self.enabled = True
+
+    def disable(self):
+        self.enabled = False
+
+    def on_touch_down(self, touch):
+        if (self.enabled == True):
+            Widget.on_touch_down(self, touch)
+        else:
+            pass
+
+    def on_touch_move(self, touch):
+        if (self.enabled == True):
+            Widget.on_touch_down(self, touch)
+        else:
+            pass
+
+    def on_touch_up(self, touch):
+        if (self.enabled == True):
+            Widget.on_touch_down(self, touch)
+        else:
+            pass
+
+
+class NSPopup(Widget):
+    """Popup class that waits for action"""
+
+    DEFAULT_WIDTH = 400
+    DEFAULT_HEIGHT = 300
+
+    """State determines whether user has made selection"""
+    state = OptionProperty('waiting', options=('waiting', 'done'))
+
+    def __init__(self, body_text, options, **kwargs):
+        """Construct NSPopup
+
+        Arguments
+        text: Text to comprise of Popup body
+        options: dictionary of format {"option": callback, ...} -- options to
+            be listed on buttons, and the function to call on option trigger
+
+        """
+
+        """Basic Widget constructor"""
+        super(NSPopup, self).__init__(width=self.DEFAULT_WIDTH,
+                                      height=self.DEFAULT_HEIGHT)
+
+        """Store data"""
+        self.options = options
+
+        """Center popup relative to screen"""
+        self.x = (Window.width - self.width) / 2
+        self.y = (Window.height - self.height) / 2
+
+        """Set formatting defaults"""
+        self.size = [self.DEFAULT_WIDTH, self.DEFAULT_HEIGHT]
+
+        """Selection is originally nothing"""
+        self.selection = None
+
+        """Layout constants"""
+        num_buttons = len(options)
+        BUTTON_MAX_WIDTH = 150
+        PADDING = 10
+        BUTTON_BALANCED_WIDTH = (self.width - (num_buttons + 1) * 
+                                 PADDING) / num_buttons
+        BUTTON_WIDTH = min(BUTTON_BALANCED_WIDTH, BUTTON_MAX_WIDTH)
+        BUTTON_HEIGHT = 50
+        BUTTON_PADDING = (self.width - (num_buttons * BUTTON_WIDTH)) /\
+                         (num_buttons + 1)
+        BUTTON_TEXT_SIZE = [BUTTON_WIDTH, BUTTON_HEIGHT]
+        BUTTON_FONT_SIZE = 12
+        BUTTON_Y = self.y + PADDING
+
+        LABEL_HEIGHT = self.height - PADDING - BUTTON_HEIGHT - PADDING - \
+                       PADDING
+        LABEL_WIDTH = self.width
+        LABEL_TEXT_SIZE = [LABEL_WIDTH, LABEL_HEIGHT]
+        LABEL_FONT_SIZE = 12
+    
+        BACKGROUND_COLOR = Color(0.2, 0.2, 0.2)
+        EDGE_COLOR = Color(0.6, 0.6, 0.6)
+        EDGE_WIDTH = self.width
+        EDGE_HEIGHT = self.height
+        EDGE_SIZE = [EDGE_WIDTH, EDGE_HEIGHT]
+        BORDER_SIZE = 5
+        BACKGROUND_WIDTH = EDGE_WIDTH - BORDER_SIZE * 2
+        BACKGROUND_HEIGHT = EDGE_HEIGHT - BORDER_SIZE * 2
+        BACKGROUND_SIZE = [BACKGROUND_WIDTH, BACKGROUND_HEIGHT]
+
+        """Create background"""
+        edge = Widget()
+        edge.pos = self.pos
+        edge.canvas = Canvas()
+        edge.canvas.add(EDGE_COLOR)
+        edge_rectangle = Rectangle(size=EDGE_SIZE)
+        edge_rectangle.pos = edge.pos
+        edge.canvas.add(edge_rectangle)
+        self.add_widget(edge)
+
+        background = Widget()
+        background.x = edge.x + BORDER_SIZE
+        background.y = edge.y + BORDER_SIZE
+        background.canvas = Canvas()
+        background.canvas.add(BACKGROUND_COLOR)
+        background_rectangle = Rectangle(size=BACKGROUND_SIZE)
+        background_rectangle.pos = background.pos
+        background.canvas.add(background_rectangle)
+        self.add_widget(background)
+
+        """Make a button for each option"""
+        option_button_x = self.x + BUTTON_PADDING
+        for option in options.keys():
+            option_button = Button(text=option, width=BUTTON_WIDTH,
+                                   valign='middle', halign='center',
+                                   height=BUTTON_HEIGHT,
+                                   text_size=BUTTON_TEXT_SIZE,
+                                   font_size=BUTTON_FONT_SIZE)
+            option_button.x = option_button_x
+            option_button.y = BUTTON_Y
+            option_button.bind(on_press=self.select_option)
+            self.add_widget(option_button)            
+
+            """Increment x for the next button"""
+            option_button_x += option_button.width + BUTTON_PADDING
+
+        """Create main message label"""
+        label = Label(text=body_text, valign='middle', halign='center',
+                      text_size=LABEL_TEXT_SIZE, font_size=LABEL_FONT_SIZE,
+                      width=LABEL_WIDTH, height=LABEL_HEIGHT)
+        label.x = self.x
+        label.y = option_button.top + PADDING
+        self.add_widget(label)
+
+    def select_option(self, button):
+        """Perform the callback associated with the choice"""
+        selection = button.text
+        callback = self.options[selection]
+        if callback != None:
+            callback()        
+
+        """Hide once option was selected!"""
+        """XXX: Potential area for memory leaks?"""
+        self.state = 'done'
+        self.parent.remove_widget(self)
+        self.clear_widgets()
+
 
 class NSTextInput(TextInput):
     """TextInput that can be enabled and disabled"""
