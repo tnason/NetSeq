@@ -92,11 +92,11 @@ class Client(ConnectionListener):
     def Network_error(self, data):
         print 'error:', data['error'][1]
         raise ClientNetworkError
-        connection.Close()
+        # connection.shutdown()
+        # connection.Close()
 	
     def Network_disconnected(self, data):
         print '@@ Server disconnected'
-
 
 class ClientNetworkError(BaseException):
     """Error in creating or operating client!"""

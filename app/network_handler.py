@@ -60,10 +60,19 @@ class NetworkHandler():
             valid_address = False
             valid_client = False
 
+        """Try to open test connection to server"""
+        if valid_address == True:
+            test_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                test_socket.connect((server_ip, server_port))
+                test_socket.shutdown(2)
+            except:
+                print "@@ Cannot connect test socket!"
+                valid_address = False
+       
         """If address reachable, then connect to server"""
         if valid_address == True:
-
-            """Attempt to open client"""
+            """Open client"""
             try:
                 self.client = Client(self.music_player, self.gui, server_ip,
                                      server_port)
@@ -83,6 +92,10 @@ class NetworkHandler():
                 except:
                     valid_client = False
                     print "@@ Deathly error when first client loop run!"
+                if valid_client == False:
+                    self.client.terminate()
+                    self.client = None
+                    self.connected = NOT_CONNECTED
 
             """Create client thread if client was created"""
             if valid_client == True:
@@ -90,11 +103,8 @@ class NetworkHandler():
                 self.client_thread = NetworkThread("client", self.client)
                 self.client_thread.start()
                 self.connected = NETWORK_CLIENT
-            else:
-                if self.client != None:
-                    self.client.terminate()
-                    self.client = None
-                self.connected = NOT_CONNECTED
+        else:
+            valid_client = False
 
         return valid_client
         
