@@ -48,7 +48,13 @@ class ClientChannel(Channel):
         """rebroadcast a send session command from a client to all others"""
         for c in self._server.clients:
             if c != self:
-                c.Send({"action": "set_session", "session_string": data['session_string']})
+                c.Send({"action": "request_session_change"})
+
+    def Network_request_session(self, data):
+        """Send a client server's music session"""
+        session = self._server.music_player.get_session()
+        session_string = cPickle.dumps(session)
+        self.Send({"action": "set_session", "session_string": session_string})
 
 
 class ServerObj(Server):
@@ -91,6 +97,10 @@ class ServerObj(Server):
 
         # Start listenting
         self.listen(listeners)
+
+    def notify_end(self):
+        self.Broadcast({"action": "server_shutdown"})
+        self.Loop()
 
     def terminate(self):
         """Destroy server cleanly"""

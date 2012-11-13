@@ -162,15 +162,28 @@ class NetworkHandler():
         self.connected = NOT_CONNECTED
  
     def destroy_server(self):
-        self.server_thread.terminate()
+        
+        if self.server != None:
+            self.server.notify_end()
+            self.server.Loop()
+        if self.server_thread != None:
+            self.server_thread.terminate()
+        if self.server != None:
+            self.server.terminate()
+
         self.server_thread = None
-        self.server.terminate()
         self.server = None
 
     def destroy_client(self):
-        self.client_thread.terminate()
+        
+        if self.client != None:
+            self.client.Loop()
+        if self.client_thread != None:
+            self.client_thread.terminate()
+        if self.client != None:
+            self.client.terminate()        
+
         self.client_thread = None
-        self.client.terminate()
         self.client = None
 
     def get_server_ip(self):
@@ -202,6 +215,10 @@ class NetworkHandler():
         if self.connected != NOT_CONNECTED:
             self.client.send_session(session)
 
+    def request_session(self):
+        """Request music session from server to application's client"""
+        if self.connected != NOT_CONNECTED:
+            self.client.request_session()
 
 #network testing code
 if __name__ == "__main__":

@@ -52,6 +52,7 @@ class GUI(Widget):
         self.app = app
         self.music_player = music_player
         self.track_id = MusicPlayer.WAVETABLE_A
+        self.popup_count = 0
 
         # For dynamic GUI coloring
         self.TRACK_COLORS = [[.7, .4, .9, 1.0], 
@@ -486,7 +487,7 @@ class GUI(Widget):
         IP_LABEL_TEXT_SIZE = [IP_INPUT_WIDTH, ELEMENT_LABEL_HEIGHT]
         NETWORK_BUTTON_WIDTH = TABS_WIDTH - TAB_SECTION_PADDING * 2
         NETWORK_BUTTON_HEIGHT = 80
-        NETWORK_BUTTON_FONT_SIZE = 12
+        NETWORK_BUTTON_FONT_SIZE = 16
         NETWORK_BUTTON_TEXT_SIZE = [NETWORK_BUTTON_WIDTH, NETWORK_BUTTON_HEIGHT]
 
         SERVER_PORT_TEXT = 'Server Port'
@@ -554,7 +555,7 @@ class GUI(Widget):
                                     text_size=NETWORK_BUTTON_TEXT_SIZE,
                                     font_size=NETWORK_BUTTON_FONT_SIZE,
                                     halign='center', valign='middle')
-        join_server_button.bind(on_press=self.join_server)
+        join_server_button.bind(on_press=self.ask_join_server)
         join_server_button.x = server_start_button.x
         join_server_button.top = server_start_button.y - TAB_ELEMENT_PADDING
         network_tab_content.add_widget(join_server_button)
@@ -566,7 +567,7 @@ class GUI(Widget):
                                        text_size=NETWORK_BUTTON_TEXT_SIZE,
                                        font_size=NETWORK_BUTTON_FONT_SIZE,
                                        halign='center', valign='middle')
-        end_connection_button.bind(on_press=self.end_connection)
+        end_connection_button.bind(on_press=self.ask_end_connection)
         end_connection_button.disable()
         end_connection_button.x = server_start_button.x
         end_connection_button.top = join_server_button.y - TAB_ELEMENT_PADDING
@@ -593,34 +594,35 @@ class GUI(Widget):
         SYSTEM_BUTTON_TEXT_SIZE = [SYSTEM_BUTTON_WIDTH, SYSTEM_BUTTON_HEIGHT]
 
         # Load button
-        load_button = Button(text='Load', width=SYSTEM_BUTTON_WIDTH,
-                             height=SYSTEM_BUTTON_HEIGHT,
-                             text_size=SYSTEM_BUTTON_TEXT_SIZE,
-                             font_size=SYSTEM_BUTTON_FONT_SIZE,
-                             halign='center', valign='middle')
+        load_button = NSDisableButton(text='Load', width=SYSTEM_BUTTON_WIDTH,
+                                      height=SYSTEM_BUTTON_HEIGHT,
+                                      text_size=SYSTEM_BUTTON_TEXT_SIZE,
+                                      font_size=SYSTEM_BUTTON_FONT_SIZE,
+                                      halign='center', valign='middle')
         load_button.bind(on_press=self.load_file)
         load_button.center_x = tabs.center_x
         load_button.top = TAB_CONTENT_TOP - SYSTEM_BUTTON_PADDING
-        system_tab_content.add_widget(load_button)        
+        system_tab_content.add_widget(load_button)
+        self.load_button = load_button
 
         # Save button
-        save_button = Button(text='Save', width=SYSTEM_BUTTON_WIDTH,
-                             height=SYSTEM_BUTTON_HEIGHT,
-                             text_size=SYSTEM_BUTTON_TEXT_SIZE,
-                             font_size=SYSTEM_BUTTON_FONT_SIZE,
-                             halign='center', valign='middle')
+        save_button = NSDisableButton(text='Save', width=SYSTEM_BUTTON_WIDTH,
+                                      height=SYSTEM_BUTTON_HEIGHT,
+                                      text_size=SYSTEM_BUTTON_TEXT_SIZE,
+                                      font_size=SYSTEM_BUTTON_FONT_SIZE,
+                                      halign='center', valign='middle')
         save_button.bind(on_press=self.save_file)
         save_button.center_x = tabs.center_x
         save_button.top = load_button.y - SYSTEM_BUTTON_PADDING
         system_tab_content.add_widget(save_button)        
 
         # Quit button
-        quit_button = Button(text='Quit', width=SYSTEM_BUTTON_WIDTH,
-                             height=SYSTEM_BUTTON_HEIGHT,
-                             text_size=SYSTEM_BUTTON_TEXT_SIZE, 
-                             font_size=SYSTEM_BUTTON_FONT_SIZE,
-                             halign='center', valign='middle')
-        quit_button.bind(on_press=self.exit)
+        quit_button = NSDisableButton(text='Quit', width=SYSTEM_BUTTON_WIDTH,
+                                      height=SYSTEM_BUTTON_HEIGHT,
+                                      text_size=SYSTEM_BUTTON_TEXT_SIZE, 
+                                      font_size=SYSTEM_BUTTON_FONT_SIZE,
+                                      halign='center', valign='middle')
+        quit_button.bind(on_press=self.request_exit)
         quit_button.center_x = tabs.center_x
         quit_button.top = save_button.y - SYSTEM_BUTTON_PADDING
         system_tab_content.add_widget(quit_button)        
@@ -742,12 +744,36 @@ class GUI(Widget):
 
     def break_from_server(self):
         """Show window describing disconnected server"""
-        pass
+        error_title = 'Server disconnected'
+        error_body = 'The server has terminated network activity. You are ' +\
+                     'no longer connected via the network'
+        self.create_popup(error_title, error_body, {'OK':self.end_connection})
+
+    def load_server_session(self):
+        message_title = 'Server file changed'
+        message_body = 'The server has loaded a new file to work on. Would ' +\
+                       'you like to load the new file, or keep working in ' +\
+                       'the current session?'
+        self.create_popup(message_title, message_body,
+                          {'Load':self.popup_before_load_from_server, 
+                           'Continue':self.end_connection})
+
+    """TODO: finish this!"""
+    def popup_before_load_from_server(self):
+        message_title = 'Save progress?'
+        message_body = 'Would you like to save work before loading the ' +\
+                       'new file?'
+        self.create_popup(message_title, message_body,
+                          {'Yes':self.save_before_load_from_server, 
+                           'No':self.network_handler.request_session})
+
+    def save_before_load_from_server(self):
+        self.save_file()
+        self.network_handler.request_session()
 
     def add_network_handler(self, network_handler):
         """Make sure this is called after init, before using the GUI"""
         self.network_handler = network_handler
-
 
     """Internal methods"""
     """ XXX 
@@ -795,6 +821,9 @@ class GUI(Widget):
         except ValueError:
             print "@@ Invalid port number"
             valid_input = False
+
+        if server_ip == '':
+            valid_input = False
         
         """Start server if input valid"""
         if valid_input == True:
@@ -808,9 +837,16 @@ class GUI(Widget):
                 self.server_port_input.disable()
         
         if server_created == False:
-            self.create_popup("Error creating server", {'OK':None})
+            self.create_popup("Error creating server", "", {'OK':None})
 
-    def join_server(self, button):
+    def ask_join_server(self, button):
+        message_title = 'Join server?'
+        message_body = 'You will lose any unsaved work'
+        self.create_popup(message_title, message_body,
+                          {'Yes':self.join_server, 'No':None})
+
+    def join_server(self):
+        connected = False
         valid_input = True
         server_ip = self.server_ip_input.text
 
@@ -818,7 +854,9 @@ class GUI(Widget):
         try:
             server_port = int(self.server_port_input.text)
         except ValueError:
-            print "@@ Invalid port number"
+            valid_input = False
+
+        if server_ip == '':
             valid_input = False
 
         """Connect to server if input valid"""
@@ -826,28 +864,45 @@ class GUI(Widget):
             connected = self.network_handler.connect_to_server(server_ip, 
                                                                server_port)
             if connected == True:
-                print "@@ Connected to server, says GUI!"
                 self.end_connection_button.enable()
                 self.server_start_button.disable()
                 self.join_server_button.disable()
                 self.server_ip_input.disable()
                 self.server_port_input.disable()
+                """Only the server of solo user can load file!"""
+                self.load_button.disable()
 
-    def end_connection(self, button):
+        if connected == False:
+            error_title = 'Could not connect to server\n'
+            error_text = '1. Check the server address\n' +\
+                '2. Make sure a friend has initialized the server\n' +\
+                '3. Try restarting if problems persist'
+            self.create_popup(error_title, error_text, {'OK':None})
+
+    def ask_end_connection(self, button=None):
+        message_title = 'Are you sure?'
+        message_body = 'Do you really want to quit network collaboration?'
+        self.create_popup(message_title, message_body,
+                          {'Yes':self.end_connection, 'No':None})
+
+    def end_connection(self):
         self.network_handler.terminate_connections()
         self.end_connection_button.disable()
         self.server_start_button.enable()
         self.join_server_button.enable()
         self.server_ip_input.enable()
         self.server_port_input.enable()
+        self.load_button.enable()
     
     """System functions"""
     def load_file(self, button):
         # Request filename through Tkinter
         load_types = [ ('NetSeq files', '*.ns')]
+        self.main_layout.disable()
         filename = tkFileDialog.askopenfilename(defaultextension='.ns', 
                                                 title='Load Session',
                                                 filetypes=load_types)
+        self.main_layout.enable()
 
         # Check for filename validity
         if filename != '':
@@ -855,7 +910,8 @@ class GUI(Widget):
                 file = open(filename, 'r')
                 file_valid = True
             except IOError:
-                print "Invalid filename!"
+                file_valid = False  
+            except TypeError:
                 file_valid = False
         else:
             file_valid = False        
@@ -867,11 +923,13 @@ class GUI(Widget):
             self.network_handler.send_session(session)
             self.new_session()
 
-    def save_file(self, button):
+    def save_file(self, button=None):
         # Request filename through Tkinter
+        self.main_layout.disable()
         filename = tkFileDialog.asksaveasfilename(defaultextension='.ns',
                                                   initialfile='my_session',
                                                   title='Save Session')
+        self.main_layout.enable()
         
         # Check if filename valid
         if filename != '':
@@ -880,7 +938,8 @@ class GUI(Widget):
                 file = open(filename, 'w')
                 file_valid = True
             except IOError:
-                print "Invalid filename!"
+                file_valid = False
+            except TypeError:
                 file_valid = False
         else:
             file_valid = False
@@ -889,8 +948,14 @@ class GUI(Widget):
         if file_valid == True:
             cPickle.dump(session, file)
 
-    def exit(self, button):
-        """Process widget request to terminate program"""
+    def request_exit(self, button):
+        quit_title = 'Quit'
+        quit_body = 'Are you sure you want to quit? You will lose any ' +\
+                    'unsaved work'
+        self.create_popup(quit_title, quit_body, 
+                          {'Yes':self.exit, 'No':None})
+
+    def exit(self):
         stopTouchApp()
 
     def destroy(self):
@@ -919,14 +984,21 @@ class GUI(Widget):
         self.network_handler.send_note(trigger_data)
     
     """GUI helpers"""
-    def create_popup(self, text, options):
-        new_popup = NSPopup(text, options)
+    def create_popup(self, title, text, options):
+        """Create a popup that absorbs control until dismissed"""
+        """TODO: make sure that releasing doesn't retrigger music buttons!"""
+        new_popup = NSPopup(title, text, options)
         self.add_widget(new_popup)
+        self.popup_count = self.popup_count + 1
+        """Disable the main layout until pop has been dismissed"""
+        print "@@ Disabling layout"
         self.main_layout.disable()
-        new_popup.bind(state=self.enable_main_layout)
+        new_popup.bind(state=self.popup_done)
 
-    def enable_main_layout(self, popup, state):
-        if state == 'done':
+    def popup_done(self, popup, state):
+        self.popup_count = self.popup_count - 1
+        if state == 'done' and self.popup_count == 0:
+            print "@@ Enabling layout"
             self.main_layout.enable()
 
     """ Functions for GUI to change fields within the MusicPlayer and those

@@ -12,16 +12,7 @@ class Client(ConnectionListener):
         """Create new client"""
         self.music_player = music_player
         self.gui = gui
-    
         self.Connect((host, port))
-
-        """Attempt to make connection. Cleanup if impossible"""
-        # try:
-        #    self.Connect((host, port))
-        # except:
-        #    print "@@ Error caught in Client constructor"
-        #    connection.Close()
-        #    raise
 
     def __del__(self):
         pass
@@ -30,6 +21,7 @@ class Client(ConnectionListener):
         connection.Pump()
         self.Pump()
 
+    """Called by NetworkHandler (wrapper)"""
     def send_note(self, note):
         """function call to send note data to server"""
         note_str = cPickle.dumps(note)
@@ -48,11 +40,15 @@ class Client(ConnectionListener):
         session_string = cPickle.dumps(session)
         connection.Send({"action": "send_session", "session_string": session_string})
 
+    def request_session(self):
+        connection.Send({"action": "request_session"})
+
     def terminate(self):
         print "@@ Terminating client!"
+        self.Loop()
         connection.Close()
 
-    #Network events
+    """Called by Server"""
     def Network_set_note(self, data):
         """callback for network triggered note addition"""
         #data['note_data'] = note
@@ -85,6 +81,9 @@ class Client(ConnectionListener):
         self.music_player.set_session(session_data)
         self.gui.new_session()
 
+    def Network_request_session_change(self, data):
+        self.gui.load_server_session()
+
     #built in Network events
     def Network_connected(self, data):
         print "You are now connected to the server"
@@ -97,6 +96,10 @@ class Client(ConnectionListener):
 	
     def Network_disconnected(self, data):
         print '@@ Server disconnected'
+    
+    def Network_server_shutdown(self, data):
+        self.gui.break_from_server()
+
 
 class ClientNetworkError(BaseException):
     """Error in creating or operating client!"""

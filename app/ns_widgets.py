@@ -61,11 +61,12 @@ class NSPopup(Widget):
     """State determines whether user has made selection"""
     state = OptionProperty('waiting', options=('waiting', 'done'))
 
-    def __init__(self, body_text, options, **kwargs):
+    def __init__(self, title, body, options, **kwargs):
         """Construct NSPopup
 
         Arguments
-        text: Text to comprise of Popup body
+        title: title of Popup
+        body: text to comprise of Popup body
         options: dictionary of format {"option": callback, ...} -- options to
             be listed on buttons, and the function to call on option trigger
 
@@ -101,12 +102,6 @@ class NSPopup(Widget):
         BUTTON_TEXT_SIZE = [BUTTON_WIDTH, BUTTON_HEIGHT]
         BUTTON_FONT_SIZE = 12
         BUTTON_Y = self.y + PADDING
-
-        LABEL_HEIGHT = self.height - PADDING - BUTTON_HEIGHT - PADDING - \
-                       PADDING
-        LABEL_WIDTH = self.width
-        LABEL_TEXT_SIZE = [LABEL_WIDTH, LABEL_HEIGHT]
-        LABEL_FONT_SIZE = 12
     
         BACKGROUND_COLOR = Color(0.2, 0.2, 0.2)
         EDGE_COLOR = Color(0.6, 0.6, 0.6)
@@ -117,6 +112,20 @@ class NSPopup(Widget):
         BACKGROUND_WIDTH = EDGE_WIDTH - BORDER_SIZE * 2
         BACKGROUND_HEIGHT = EDGE_HEIGHT - BORDER_SIZE * 2
         BACKGROUND_SIZE = [BACKGROUND_WIDTH, BACKGROUND_HEIGHT]
+
+        TITLE_HEIGHT = 50
+        TITLE_WIDTH = BACKGROUND_WIDTH - PADDING
+        TITLE_FONT_SIZE = 18
+        TITLE_PADDING_ABOVE = 50
+        TITLE_TOP = self.top - BORDER_SIZE - TITLE_PADDING_ABOVE
+        TITLE_TEXT_SIZE = [TITLE_WIDTH, TITLE_HEIGHT]
+
+        BODY_HEIGHT = self.height - PADDING - BUTTON_HEIGHT - PADDING - \
+                      PADDING - TITLE_HEIGHT - PADDING
+        BODY_PADDING_SIDES = 30
+        BODY_WIDTH = BACKGROUND_WIDTH - PADDING - BODY_PADDING_SIDES * 2
+        BODY_TEXT_SIZE = [BODY_WIDTH, BODY_HEIGHT]
+        BODY_FONT_SIZE = 14
 
         """Create background"""
         edge = Widget()
@@ -148,19 +157,27 @@ class NSPopup(Widget):
                                    font_size=BUTTON_FONT_SIZE)
             option_button.x = option_button_x
             option_button.y = BUTTON_Y
-            option_button.bind(on_press=self.select_option)
+            option_button.bind(on_release=self.select_option)
             self.add_widget(option_button)            
 
             """Increment x for the next button"""
             option_button_x += option_button.width + BUTTON_PADDING
 
+        """Create title label"""
+        title = Label(text=title, valign='middle', halign='center',
+                      text_size=TITLE_TEXT_SIZE, font_size=TITLE_FONT_SIZE,
+                      TITLE=TITLE_WIDTH, height=TITLE_HEIGHT)
+        title.center_x = self.center_x
+        title.top = TITLE_TOP
+        self.add_widget(title)
+
         """Create main message label"""
-        label = Label(text=body_text, valign='middle', halign='center',
-                      text_size=LABEL_TEXT_SIZE, font_size=LABEL_FONT_SIZE,
-                      width=LABEL_WIDTH, height=LABEL_HEIGHT)
-        label.x = self.x
-        label.y = option_button.top + PADDING
-        self.add_widget(label)
+        body = Label(text=body, valign='top', halign='center',
+                      text_size=BODY_TEXT_SIZE, font_size=BODY_FONT_SIZE,
+                      BODY=BODY_WIDTH, height=BODY_HEIGHT)
+        body.center_x = self.center_x
+        body.top = title.y - PADDING
+        self.add_widget(body)
 
     def select_option(self, button):
         """Perform the callback associated with the choice"""
