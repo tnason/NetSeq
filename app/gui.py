@@ -837,7 +837,11 @@ class GUI(Widget):
                 self.server_port_input.disable()
         
         if server_created == False:
-            self.create_popup("Error creating server", "", {'OK':None})
+            error_title = "Could not create server"
+            error_body = "Check to make sure that you are connected to the " +\
+                         "network and that you have provided a valid IP, " +\
+                         "port combination"
+            self.create_popup(error_title, error_body, {'OK':None})
 
     def ask_join_server(self, button):
         message_title = 'Join server?'
