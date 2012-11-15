@@ -1,4 +1,0 @@
-1. Tkinter has nasty space in lower right corner
-2. Tkinter looks ugly
-3. Needs a separate thread for its main loop
-4. We'll need 'ttk' installed

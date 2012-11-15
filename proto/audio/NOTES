@@ -1,7 +1,0 @@
-1. Order of initializations is significant
-2. Apparently we want to initialize Pyo only after we've initialized
-    Pygame.
-3. Is there a competition between the two for resources?
-4. Pygame also appears to have difficulty with:
-    - promptness of playback
-    - number of active channels

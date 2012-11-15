@@ -1,8 +1,0 @@
-Much of the source herein written is adapted from that documented from the
-Kivy help pages: http://kivy.org/docs/api-kivy.html
-
-We may want to use Tkinter instead for ease of programming. Kivy is more
-complex.
-
-Though note that Tkinter looks much worse out of the box. Or does it?
-What if we make it black? What assets do we need to create?

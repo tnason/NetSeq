@@ -1,4 +1,5 @@
-Coding Conventions:
+Coding Conventions
+==================
 
 When in doubt, follow http://www.python.org/dev/peps/pep-0008/
 
@@ -9,3 +10,12 @@ Some important points to note
 2. Name functions and variables with text_with_underscores
 3. CONTANTS_IN_CAPS_WITH_UNDESCORES
 4. Private data begins with _
+Dependencies:
+
+Build Dependencies
+==================
+
+1. tkinter
+2. Kivy
+3. PodSixNet
+4. Pyo
