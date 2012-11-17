@@ -1,6 +1,7 @@
 from instrument import WaveInstrument, DrumInstrument
 from instrument import WaveInstrumentData, DrumInstrumentData
-from pyo import Mixer, Server, Metro, TrigFunc
+from pyo import Mixer, Server, Metro, TrigFunc, pa_get_output_devices
+import platform
 
 class MusicPlayer:
     """Playback engine for sequencer samples and sounds"""
@@ -37,7 +38,19 @@ class MusicPlayer:
         self.playhead_index = 0
         self.beat_index = 0
 
-        self.server = Server()
+        self.server = Server(duplex=0)
+        """Set proper output device for latency-free playback on Windows"""
+        """Source: https://groups.google.com/d/msg/pyo-discuss/9fvFiGbch3c/tzJTfbpLUY8J"""
+        if platform.system() == "Windows":
+            out_devices = pa_get_output_devices()
+            od_index = 0
+            for od in out_devices[0]:
+                if "Primary Sound Driver" in od:
+                    pai = int(out_devices[1][od_index])
+                    self.server.setOutputDevice(pai)
+                    break
+                od_index += 1
+
         self.server.boot()
         self.server.start()
 
