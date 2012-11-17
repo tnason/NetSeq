@@ -16,6 +16,7 @@ import Tkinter
 import tkFileDialog
 import cPickle
 import time
+import os.path
 
 from music_player import Note, MusicPlayer
 from network_handler import NetworkHandler
@@ -901,11 +902,13 @@ class GUI(Widget):
     """System functions"""
     def load_file(self, button):
         # Request filename through Tkinter
+        homedir = os.path.expanduser("~")
         load_types = [ ('NetSeq files', '*.ns')]
         self.main_layout.disable()
         filename = tkFileDialog.askopenfilename(defaultextension='.ns', 
                                                 title='Load Session',
-                                                filetypes=load_types)
+                                                filetypes=load_types,
+                                                initialdir=homedir)
         self.main_layout.enable()
 
         # Check for filename validity
@@ -929,10 +932,12 @@ class GUI(Widget):
 
     def save_file(self, button=None):
         # Request filename through Tkinter
+        homedir = os.path.expanduser("~")
         self.main_layout.disable()
         filename = tkFileDialog.asksaveasfilename(defaultextension='.ns',
                                                   initialfile='my_session',
-                                                  title='Save Session')
+                                                  title='Save Session',
+                                                  initialdir=homedir)
         self.main_layout.enable()
         
         # Check if filename valid
