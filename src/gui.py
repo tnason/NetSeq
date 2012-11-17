@@ -11,6 +11,7 @@ from kivy.uix.popup import Popup
 from kivy.graphics.instructions import Canvas
 from kivy.graphics import Rectangle
 from kivy.graphics import Color
+from kivy.config import Config
 
 import Tkinter
 import tkFileDialog
@@ -54,6 +55,9 @@ class GUI(Widget):
         self.music_player = music_player
         self.track_id = MusicPlayer.WAVETABLE_A
         self.popup_count = 0
+
+        # Turn off multi-touch in this GUI
+        Config.set('input', 'mouse', 'mouse,disable_multitouch')
 
         # For dynamic GUI coloring
         self.TRACK_COLORS = [[.7, .4, .9, 1.0], 
