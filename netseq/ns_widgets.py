@@ -22,6 +22,9 @@ from kivy.graphics import Rectangle
 from kivy.graphics import Color
 from kivy.core.window import Window
 
+import system
+import os.path
+
 class NSWidget(Widget):
     """Disable-able widget (absorbs clicks"""
 
@@ -237,8 +240,8 @@ class NSTextInput(TextInput):
 class NSToggleButton(ToggleButton):
     """ToggleButton with gray appearance"""
 
-    background_normal = 'atlas://assets/images/netseq-theme/button'
-    background_down = 'atlas://assets/images/netseq-theme/button_pressed'
+    background_normal = system.get_item_in_atlas('button')
+    background_down = system.get_item_in_atlas('button_pressed')
 
 
 class NSSlider(Slider):
@@ -257,9 +260,9 @@ class NSDisableButton(Button):
 
     state = OptionProperty('normal', options=('normal', 'down', 'disabled'))
 
-    background_normal = 'atlas://assets/images/netseq-theme/button'
-    background_down = 'atlas://assets/images/netseq-theme/button_pressed'
-    background_disabled = 'atlas://assets/images/netseq-theme/button_pressed'
+    background_normal = system.get_item_in_atlas('button')
+    background_down = system.get_item_in_atlas('button_pressed')
+    background_disabled = system.get_item_in_atlas('button_pressed')
 
     def __init__(self, **kwargs):
         """Create new NSDisableButton"""

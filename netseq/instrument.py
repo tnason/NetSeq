@@ -1,5 +1,8 @@
-from pyo import Mixer, SndTable, TableRead, WGVerb, SquareTable, CosTable, \
+from pyo import Mixer, SndTable, TableRead, WGVerb, SquareTable, CosTable,\
                 Osc, Disto, Chorus
+import system
+import os.path
+import sys
 
 class Instrument:
     """This class holds the sound generator and playback parameters for a track"""
@@ -117,15 +120,14 @@ class DrumInstrument(Instrument):
         self.names = ["Crash", "Big Tom", "Sm. Tom", "Rim", "HiHat 2", 
                       "HiHat 1", "Snare", "Kick"]
 
-        # TODO: make this absolute and across files
-        SOUND_PATH = "assets/sounds/osdrumkit/"
+        SOUND_DIR = system.get_sounds_dir()
 
         self.generator = None
         self.sample_tables = []
         self.generator_cutoff = False        
 
         for row_index in range(0, music_player.NUM_ROWS):
-            file = SOUND_PATH + self.sample_files[row_index]
+            file = os.path.join(SOUND_DIR, self.sample_files[row_index])
             sample_table = SndTable(file)
             self.sample_tables.append(sample_table)
             frequency = sample_table.getRate()

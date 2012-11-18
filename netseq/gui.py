@@ -12,17 +12,22 @@ from kivy.graphics.instructions import Canvas
 from kivy.graphics import Rectangle
 from kivy.graphics import Color
 from kivy.config import Config
+from kivy.lang import Builder
 
 import Tkinter
 import tkFileDialog
 import cPickle
 import time
+import sys
+import os
 import os.path
+
 
 from music_player import Note, MusicPlayer
 from network_handler import NetworkHandler
 from ns_widgets import NSToggleButton, NSSlider, NSDisableButton, \
                        NSTextInput, NSPopup, NSWidget
+import system
 
 class GUI(Widget):
     """Widget for all user interaction with sequencer"""
@@ -58,6 +63,9 @@ class GUI(Widget):
 
         # Turn off multi-touch in this GUI
         Config.set('input', 'mouse', 'mouse,disable_multitouch')
+
+        # Determine image directory
+        IMAGE_DIR = system.get_images_dir()
 
         # For dynamic GUI coloring
         self.TRACK_COLORS = [[.7, .4, .9, 1.0], 
@@ -194,9 +202,9 @@ class GUI(Widget):
                              height=PLAY_BUTTON_HEIGHT)
         play_button.bind(on_press=self.play_pause)
         play_button.background_normal = \
-            "assets/icons/media-playback-start-4.png"
+            os.path.join(IMAGE_DIR, "media-playback-start-4.png")
         play_button.background_down = \
-            "assets/icons/media-playback-pause-4.png"
+            os.path.join(IMAGE_DIR, "media-playback-pause-4.png")
         play_button.x = PLAY_BUTTON_X
         play_button.center_y = PLAYBACK_CENTER_Y
         self.play_button = play_button
@@ -349,9 +357,10 @@ class GUI(Widget):
         tabs.default_tab.text = ""
         # TODO: make these paths absolute?
         tabs.default_tab.background_normal = \
-            "assets/icons/audio-keyboard.png"
+            os.path.join(IMAGE_DIR, "audio-keyboard.png")
+        print "@@ default tab bg: ", tabs.default_tab.background_normal
         tabs.default_tab.background_down = \
-            "assets/icons/audio-keyboard-down.png"
+            os.path.join(IMAGE_DIR, "audio-keyboard-down.png")
 
         # Global music options
         global_music_label = Label(text='Global', 
@@ -478,9 +487,9 @@ class GUI(Widget):
         network_tab = TabbedPanelHeader()
         network_tab.text = ""
         network_tab.background_normal = \
-            "assets/icons/network-wired-2.png"
+            os.path.join(IMAGE_DIR, "network-wired-2.png")
         network_tab.background_down = \
-            "assets/icons/network-wired-2-down.png"
+            os.path.join(IMAGE_DIR, "network-wired-2-down.png")
         tabs.add_widget(network_tab)
         
         TEXT_INPUT_HEIGHT = 30
@@ -582,9 +591,9 @@ class GUI(Widget):
         # System options tab
         system_tab = TabbedPanelHeader()
         system_tab.background_normal = \
-            "assets/icons/media-floppy.png"
+            os.path.join(IMAGE_DIR, "media-floppy.png")
         system_tab.background_down = \
-            "assets/icons/media-floppy-down.png"
+            os.path.join(IMAGE_DIR, "media-floppy-down.png")
         tabs.add_widget(system_tab)
 
         system_tab_content = Widget(width=TABS_WIDTH, height=TAB_CONTENT_HEIGHT)
@@ -1117,8 +1126,16 @@ class GUI(Widget):
             button.state = 'down'
 
 class NetSeqApp(App):
-    """Kivy application that kicks off GUI"""
+    """Main Kivy application"""
     
+    def load_kv(self):
+        """Force load of appropriate kv file"""
+        kv_file = system.get_kv_file()
+        root = Builder.load_file(kv_file)
+        if root:
+            self.root = root
+        return True
+
     def build(self):
         """Build GUI"""
         music_player = MusicPlayer()

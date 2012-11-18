@@ -1,4 +1,5 @@
 #:kivy 1.0
+#:import system netseq.system
 
 <Label>:
     canvas:
@@ -55,8 +56,8 @@
             pos: self.pos
 
 <BubbleButton>:
-    background_normal: 'atlas://assets/images/netseq-theme/bubble_btn'
-    background_down: 'atlas://assets/images/netseq-theme/bubble_btn_pressed'
+    background_normal: system.get_item_in_atlas('bubble_btn')
+    background_down: system.get_item_in_atlas('bubble_btn_pressed')
     border: (0, 0, 0, 0)
 
 <Slider>:
@@ -68,11 +69,11 @@
             border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
             pos: (self.x, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y)
             size: (self.width, 37) if self.orientation == 'horizontal' else (37, self.height)
-            source: 'atlas://assets/images/netseq-theme/slider%s_background' % self.orientation[0]
+            source: system.get_item_in_atlas('slider%s_background' % self.orientation[0])
         Rectangle:
             pos: (self.value_pos[0] - 16, self.center_y - 17) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
             size: (32, 32)
-            source: 'atlas://assets/images/netseq-theme/slider_cursor'
+            source: system.get_item_in_atlas('slider_cursor')
 
 <NSSlider>:
     canvas:
@@ -83,11 +84,11 @@
             border: (0, 18, 0, 18) if self.orientation == 'horizontal' else (18, 0, 18, 0)
             pos: (self.x, self.center_y - 18) if self.orientation == 'horizontal' else (self.center_x - 18, self.y)
             size: (self.width, 37) if self.orientation == 'horizontal' else (37, self.height)
-            source: 'atlas://assets/images/netseq-theme/slider%s_background' % self.orientation[0]
+            source: system.get_item_in_atlas('slider%s_background' % self.orientation[0])
         Rectangle:
             pos: (self.value_pos[0] - 16, self.center_y - 17) if self.orientation == 'horizontal' else (self.center_x - 16, self.value_pos[1] - 16)
             size: (32, 32)
-            source: 'atlas://assets/images/netseq-theme/slider_cursor'
+            source: system.get_item_in_atlas('slider_cursor')
 
 <ProgressBar>:
     canvas:
@@ -97,12 +98,12 @@
             border: (12, 12, 12, 12)
             pos: self.x, self.center_y - 12
             size: self.width, 24
-            source: 'atlas://assets/images/netseq-theme/progressbar_background'
+            source: system.get_item_in_atlas('progressbar_background')
         BorderImage:
             border: [int(min(self.width * (self.value / float(self.max)), 12))] * 4
             pos: self.x, self.center_y - 12
             size: self.width * (self.value / float(self.max)), 24
-            source: 'atlas://assets/images/netseq-theme/progressbar'
+            source: system.get_item_in_atlas('progressbar')
 
 <Scatter>:
     canvas.before:
@@ -139,8 +140,8 @@
 <TabbedPanelHeader>:
     halign: 'center'
     valign: 'middle'
-    background_normal: 'atlas://assets/images/netseq-theme/tab_btn'
-    background_down: 'atlas://assets/images/netseq-theme/tab_btn_pressed'
+    background_normal: system.get_item_in_atlas('tab_btn')
+    background_down: system.get_item_in_atlas('tab_btn_pressed')
     border: (8, 8, 8, 8)
     font_size: 11
 
@@ -188,7 +189,7 @@
         Color:
             rgba: 1, 1, 1, int(not self.is_leaf)
         Rectangle:
-            source: 'atlas://assets/images/netseq-theme/tree_%s' % ('opened' if self.is_open else 'closed')
+            source: system.get_item_in_atlas('tree_%s' % ('opened' if self.is_open else 'closed'))
             size: 16, 16
             pos: self.x - 20, self.center_y - 8
     canvas.after:
@@ -343,11 +344,11 @@
             border: 8, 8, 8, 8
             pos: root.pos
             size: root.size
-            source: 'atlas://assets/images/netseq-theme/filechooser_selected'
+            source: system.get_item_in_atlas('filechooser_selected')
 
     Image:
         size: 48, 48
-        source: 'atlas://assets/images/netseq-theme/filechooser_%s' % ('folder' if ctx.isdir else 'file')
+        source: system.get_item_in_atlas('filechooser_%s' % ('folder' if ctx.isdir else 'file'))
         pos: root.x + 24, root.y + 40
     Label:
         text: unicode(ctx.name)
@@ -413,11 +414,11 @@
         Color:
             rgb: 1, 1, 1
         Rectangle:
-            source: 'atlas://assets/images/netseq-theme/switch-background'
+            source: system.get_item_in_atlas('switch-background')
             size: 83, 32
             pos: int(self.center_x - 41), int(self.center_y - 16)
         Rectangle:
-            source: 'atlas://assets/images/netseq-theme/switch-button'
+            source: system.get_item_in_atlas('switch-button')
             size: 43, 32
             pos: int(self.center_x - 41 + self.active_norm_pos * 41), int(self.center_y - 16)
 
@@ -717,7 +718,7 @@
         pos_hint: {'x': 0, 'y': 0}
 
     Image:
-        source: 'atlas://assets/images/netseq-theme/player-play-overlay' if not root.click_done else 'data/images/image-loading.gif'
+        source: system.get_item_in_atlas('player-play-overlay' if not root.click_done else 'data/netseq/images/image-loading.gif')
         pos_hint: {'x': 0, 'y': 0}
 
 <VideoPlayerAnnotation>:
@@ -786,7 +787,7 @@
         Color:
             rgb: 1, 1, 1
         Rectangle:
-            source: 'atlas://assets/images/netseq-theme/checkbox%s_%s' % (('_radio' if self.group else ''), ('on' if self.active else 'off'))
+            source: system.get_item_in_atlas('checkbox%s_%s' % (('_radio' if self.group else ''), ('on' if self.active else 'off')))
             size: 32, 32
             pos: int(self.center_x - 16), int(self.center_y - 16)
 
