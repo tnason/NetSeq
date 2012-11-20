@@ -2,6 +2,7 @@
 
 import os.path
 import sys
+import platform
 
 def get_atlas():
     """Find the location of the image atlas"""
@@ -12,7 +13,13 @@ def get_atlas():
     else:
         script_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)))
         image_dir = os.path.join(script_dir, "images")
-        atlas_location = "atlas://" + os.path.join(image_dir, "netseq-theme")
+
+        """Determine atlas prefix based on platform"""
+        if platform.system() == 'Windows':
+            atlas_prefix = "atlas:\\"
+        else:
+            atlas_prefix = "atlas://"
+        atlas_location = atlas_prefix + os.path.join(image_dir, "netseq-theme")
 
     return atlas_location
 
