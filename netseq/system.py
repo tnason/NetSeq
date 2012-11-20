@@ -9,18 +9,15 @@ def get_atlas():
 
     """Figure out whether we are in a binary or source"""
     if getattr(sys, 'frozen', None):
-        atlas_location = 'atlas://' + os.path.join(sys._MEIPASS, 'netseq-theme')
+        atlas_location = 'atlas://' + sys._MEIPASS + '/netseq-theme'
     else:
-        script_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)))
-        image_dir = os.path.join(script_dir, "images")
+        script_dir = os.path.basename(os.path.dirname(os.path.realpath(__file__)))
+        image_dir = script_dir + "/images"
 
-        """Determine atlas prefix based on platform"""
-        if platform.system() == 'Windows':
-            atlas_prefix = "atlas:\\"
-        else:
-            atlas_prefix = "atlas://"
-        atlas_location = atlas_prefix + os.path.join(image_dir, "netseq-theme")
-
+	"""Atlas structure uses linux-like relative paths"""
+        atlas_prefix = 'atlas://'
+        atlas_location = atlas_prefix + image_dir + "/netseq-theme"
+	
     return atlas_location
 
 def get_item_in_atlas(item):
@@ -33,8 +30,7 @@ def get_item_in_atlas(item):
     'atlas' path to item
 
     """
-
-    return os.path.join(get_atlas(), item)
+    return get_atlas() + "/" + item
 
 def get_kv_dir():
     """Find the directory of the .kv style file"""
