@@ -59,6 +59,10 @@ class NetworkHandler():
             print "@@ Invalid server address!"
             valid_address = False
             valid_client = False
+        except:
+            print "@@ Failed to create client!"
+            valid_address = False
+            valid_client = False
 
         """Try to open test connection to server"""
         if valid_address == True:
