@@ -53,7 +53,11 @@ class NetworkHandler():
 
         """Check if the address could be reached!"""
         valid_address = True
-        try:
+        '''
+	Commented out in order to allow connection to an OSX server from Windows
+	OSX to Windows and Windows to Windows function with this code included
+	Seems like a firewalling issue, but isn't
+	try:
             socket.gethostbyaddr(server_ip)
         except socket.gaierror:
             print "@@ Invalid server address!"
@@ -63,6 +67,7 @@ class NetworkHandler():
             print "@@ Failed to create client!"
             valid_address = False
             valid_client = False
+        '''
 
         """Try to open test connection to server"""
         if valid_address == True:
