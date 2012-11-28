@@ -106,7 +106,7 @@ class DrumInstrument(Instrument):
                "chh37.ogg", "snaretop_37.ogg", "kick_22.ogg"]
     sample_amps = [0.2, 1.0, 1.0, 0.3, 0.4, 0.4, 0.3, 0.8]
 
-    def __init__(self, music_player, volume=4.0, reverb_mix=.1, notes=None):
+    def __init__(self, music_player, volume=0.7, reverb_mix=.1, notes=None):
         """ Create new DrumInstrument 
 
         Arguments:
@@ -170,7 +170,7 @@ class DrumInstrument(Instrument):
     def get_data(self):
         """Get data for storing and loading this instrument"""
         data = DrumInstrumentData(self.volume, self.reverb_mix, self.notes)
-        return data;
+        return data
 
 
 class WaveInstrument(Instrument):
@@ -181,8 +181,10 @@ class WaveInstrument(Instrument):
                      261.63]
     BASS = 0
     LEAD = 1
+
+    LIMITING_FACTOR = 20
     
-    def __init__(self, music_player, wavetype=LEAD, volume=.2, reverb_mix=.1, 
+    def __init__(self, music_player, wavetype=LEAD, volume=.7, reverb_mix=.1, 
                  notes=None):
         """ Create new WaveInstrument
 
@@ -212,23 +214,27 @@ class WaveInstrument(Instrument):
             oscillator.stop()
             self.row_generators.append(oscillator)
             self.mixer.addInput(i, oscillator)
-            self.mixer.setAmp(i, 0, 1)
+            self.mixer.setAmp(i, 0, (1.0 / self.LIMITING_FACTOR))
      
         pre_effect = self.mixer[0]
 
         if (self.wavetype == self.BASS):
             distorted = Disto(pre_effect)
-            post_effect = distorted
+	    volume_reducer = Mixer(outs=1)
+	    volume_reducer.addInput(0, distorted)
+	    volume_reducer.setAmp(0, 0, 0.3)
+	    post_effect = volume_reducer[0]
         elif (self.wavetype == self.LEAD):
-            chorus = Chorus(pre_effect)
-            post_effect = chorus
+            #chorus = Chorus(pre_effect)
+            #post_effect = chorus
+	    post_effect = pre_effect
         else:
-            post_effect = pre_effect
+	    post_effect = pre_effect
    
         # Apply reverb to omixer
         self.reverb_out = WGVerb(post_effect, feedback=0.8, cutoff=3500, 
                                  bal=self.reverb_mix)
-        
+
         #use generator.setBal(x) to modify reverb
         self.generator = self.reverb_out
 

@@ -18,7 +18,7 @@ class MusicPlayer:
     MIN_TEMPO = 40.0
     MAX_TEMPO = 240.0
     MIN_VOLUME = 0.0
-    MAX_VOLUME = 6.0
+    MAX_VOLUME = 1.0
     MIN_REVERB = 0.0
     MAX_REVERB = 1.0 
 
@@ -59,8 +59,8 @@ class MusicPlayer:
         self.metronome_callback = TrigFunc(self.metronome, function=self.step)
         
         # Create instruments
-        wavetable_a = WaveInstrument(self, WaveInstrument.BASS, volume=.1)
-        wavetable_b = WaveInstrument(self, WaveInstrument.LEAD, volume=.3)
+        wavetable_a = WaveInstrument(self, WaveInstrument.BASS)
+        wavetable_b = WaveInstrument(self, WaveInstrument.LEAD)
         drums = DrumInstrument(self)
         
         self.instruments.append(wavetable_a)
